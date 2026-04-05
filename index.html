@@ -283,13 +283,35 @@ Limpiar filtros
 </div>
 </div>
 
-<script>
+<script type="module">
+    // Importamos Firebase directamente desde sus módulos oficiales
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // Tus credenciales de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyCbUzinarv0t7AltOF4Lf2aGh7pyUQOXuQ",
+        authDomain: "inventario-de-materiales-4f477.firebaseapp.com",
+        projectId: "inventario-de-materiales-4f477",
+        storageBucket: "inventario-de-materiales-4f477.firebasestorage.app",
+        messagingSenderId: "192541716894",
+        appId: "1:192541716894:web:8c50104b3d2fd454d0668f",
+        measurementId: "G-E51B00JFEB"
+    };
+
+    // Inicializamos Firebase y Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Variables globales
     const modal = document.getElementById('material-modal');
     const form = document.getElementById('material-form');
     
     let currentMode = 'add';
     let currentEditingCard = null;
+    let currentEditingId = null;
     let currentImageBase64 = ''; // Guardará la imagen subida
+    let materialsData = []; // Array donde mantendremos sincronizada la base de datos
 
     // Escuchar cambios en el input de imagen para convertirla y poder mostrarla
     document.getElementById('mat-img').addEventListener('change', function(e) {
@@ -332,27 +354,32 @@ Limpiar filtros
     let currencySymbol = '$'; // Moneda inicial
     let stores = []; // [{name: 'Librería Nacional', url: 'https...'}]
 
-    function loadSettings() {
-        const savedTags = localStorage.getItem('inventoryTags');
-        if (savedTags) try { tags = JSON.parse(savedTags); } catch(e) {}
-        
-        const savedUnits = localStorage.getItem('inventoryUnits');
-        if (savedUnits) try { units = JSON.parse(savedUnits); } catch(e) {}
-        
-        const savedCurrency = localStorage.getItem('inventoryCurrency');
-        if (savedCurrency) currencySymbol = savedCurrency;
-        
-        const savedStores = localStorage.getItem('inventoryStores');
-        if (savedStores) try { stores = JSON.parse(savedStores); } catch(e) {}
-        
-        renderSettings();
-    }
+    // --- Sincronización en Tiempo Real (Ajustes) ---
+    onSnapshot(doc(db, "settings", "global"), (docSnap) => {
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            tags = data.tags || ['Maqueta Blanca', 'Maderas', 'Polímeros', 'Papeles'];
+            units = data.units || ['u', 'm', 'm²', 'ml', 'L', 'kg'];
+            currencySymbol = data.currencySymbol || '$';
+            stores = data.stores || [];
+            renderSettings();
+            renderMaterials(); // Re-renderiza las tarjetas por si cambió la moneda o una tienda
+        } else {
+            renderSettings(); // Valores por defecto
+        }
+    });
 
-    function saveSettings() {
-        localStorage.setItem('inventoryTags', JSON.stringify(tags));
-        localStorage.setItem('inventoryUnits', JSON.stringify(units));
-        localStorage.setItem('inventoryCurrency', currencySymbol);
-        localStorage.setItem('inventoryStores', JSON.stringify(stores));
+    // --- Sincronización en Tiempo Real (Materiales) ---
+    onSnapshot(collection(db, "materials"), (snapshot) => {
+        materialsData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        renderMaterials();
+    });
+
+    async function saveSettings() {
+        // Subimos los ajustes a la nube (No es necesario recargar las tarjetas porque OnSnapshot lo hará automáticamente)
+        await setDoc(doc(db, "settings", "global"), {
+            tags, units, currencySymbol, stores
+        }, { merge: true });
     }
 
     function renderSettings() {
@@ -473,8 +500,6 @@ Limpiar filtros
         if (val) {
             currencySymbol = val;
             saveSettings();
-            renderSettings();
-            rebuildAllCards();
         }
     }
 
@@ -484,16 +509,17 @@ Limpiar filtros
         if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
             const cleanNewName = newName.trim();
             tags[index] = cleanNewName;
-            document.querySelectorAll('#inventory-grid article').forEach(card => {
-                let cardTags = (card.getAttribute('data-category') || '').split(',').map(s=>s.trim()).filter(Boolean);
+            
+            // Actualizamos los materiales en la base de datos que tuvieran este tag antiguo
+            materialsData.forEach(async (mat) => {
+                let cardTags = (mat.category || '').split(',').map(s=>s.trim()).filter(Boolean);
                 if (cardTags.includes(oldName)) {
                     cardTags = cardTags.map(t => t === oldName ? cleanNewName : t);
-                    card.setAttribute('data-category', cardTags.join(', '));
+                    await updateDoc(doc(db, 'materials', mat.id), { category: cardTags.join(', ') });
                 }
             });
+            
             saveSettings();
-            renderSettings();
-            rebuildAllCards();
         }
     }
 
@@ -503,14 +529,15 @@ Limpiar filtros
         if (newUnit && newUnit.trim() !== "" && newUnit.trim() !== oldUnit) {
             const cleanNewUnit = newUnit.trim();
             units[index] = cleanNewUnit;
-            document.querySelectorAll('#inventory-grid article').forEach(card => {
-                if (card.getAttribute('data-unit') === oldUnit) {
-                    card.setAttribute('data-unit', cleanNewUnit);
+            
+            // Actualizamos en la nube
+            materialsData.forEach(async (mat) => {
+                if (mat.unit === oldUnit) {
+                    await updateDoc(doc(db, 'materials', mat.id), { unit: cleanNewUnit });
                 }
             });
+            
             saveSettings();
-            renderSettings();
-            rebuildAllCards();
         }
     }
 
@@ -523,8 +550,6 @@ Limpiar filtros
         if (name) {
             stores.push({name, url});
             saveSettings();
-            renderSettings();
-            nameInput.value = '';
             urlInput.value = '';
         }
     }
@@ -540,8 +565,6 @@ Limpiar filtros
             const cleanUrl = newUrl.trim();
             stores[index] = {name: cleanName, url: cleanUrl};
             saveSettings();
-            renderSettings();
-            rebuildAllCards();
         }
     }
 
@@ -549,7 +572,6 @@ Limpiar filtros
         if(confirm('¿Seguro que quieres eliminar esta tienda?')) {
             stores.splice(index, 1);
             saveSettings();
-            renderSettings();
         }
     }
 
@@ -560,7 +582,6 @@ Limpiar filtros
         if (val && !tags.includes(val)) {
             tags.push(val);
             saveSettings();
-            renderSettings();
             input.value = '';
         }
     }
@@ -569,7 +590,6 @@ Limpiar filtros
         if(confirm('¿Seguro que quieres eliminar este tag?')) {
             tags.splice(index, 1);
             saveSettings();
-            renderSettings();
         }
     }
 
@@ -580,7 +600,6 @@ Limpiar filtros
         if (val && !units.includes(val)) {
             units.push(val);
             saveSettings();
-            renderSettings();
             input.value = '';
         }
     }
@@ -589,7 +608,6 @@ Limpiar filtros
         if(confirm('¿Seguro que quieres eliminar esta unidad?')) {
             units.splice(index, 1);
             saveSettings();
-            renderSettings();
         }
     }
 
@@ -619,6 +637,7 @@ Limpiar filtros
             document.getElementById('modal-title').textContent = 'Editar Material';
             document.getElementById('modal-desc').textContent = 'Modifica la información del material.';
             currentEditingCard = btn.closest('article');
+            currentEditingId = currentEditingCard.getAttribute('data-id');
             
             // Extraer información de la tarjeta
             const title = currentEditingCard.getAttribute('data-name') || currentEditingCard.querySelector('h3').textContent;
@@ -770,10 +789,11 @@ Limpiar filtros
         modal.classList.add('hidden');
         form.reset();
         currentEditingCard = null;
+        currentEditingId = null;
         currentImageBase64 = '';
     }
 
-    function saveMaterial(event) {
+    async function saveMaterial(event) {
         event.preventDefault(); // Previene que la página se recargue
         
         const name = document.getElementById('mat-name').value || 'Sin nombre';
@@ -807,96 +827,21 @@ Limpiar filtros
             loc = stores[storeIndex].url;
         }
         
-        let priceValue = '-';
-        let unitHtml = '';
-        if (price) {
-            priceValue = currencySymbol + Number(price).toLocaleString('es-CL');
-            if (unit) unitHtml = `<span class="text-sm font-semibold text-gray-500">/ ${unit}</span>`;
-        }
-        
-        const imageHtml = imgSrc 
-            ? `<img alt="${name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${imgSrc}">`
-            : `<div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300"><span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span></div>`;
-
-        let locHtml = ``;
-        if (store) {
-            if (loc && loc !== '#') {
-                locHtml = `
-                <a href="${loc}" target="_blank" onclick="event.stopPropagation()" class="w-fit flex items-center gap-1.5 bg-primary-soft text-primary px-3 py-1.5 rounded-xl hover:bg-primary hover:text-white transition-colors max-w-[200px] shadow-sm mb-3" title="Comprar en ${store}">
-                    <span class="material-symbols-outlined text-[16px]">storefront</span>
-                    <span class="text-xs font-bold truncate">${store}</span>
-                </a>`;
-            } else {
-                locHtml = `
-                <span class="w-fit flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-xl max-w-[200px] mb-3" title="${store}">
-                    <span class="material-symbols-outlined text-[16px]">storefront</span>
-                    <span class="text-xs font-bold truncate">${store}</span>
-                </span>`;
-            }
-        }
-
-        const cardContent = `
-            <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
-                ${imageHtml}
-                <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                    <button type="button" onclick="openModal('edit', this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors active:scale-95" title="Editar">
-                        <span class="material-symbols-outlined text-[18px]">edit</span>
-                    </button>
-                    <button type="button" onclick="deleteMaterial(this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors active:scale-95" title="Eliminar">
-                        <span class="material-symbols-outlined text-[18px]">delete</span>
-                    </button>
-                </div>
-            </div>
-            <div class="p-5 flex flex-col flex-1 bg-white">
-                <h3 class="text-xl font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1">${name}</h3>
-                ${sizeText ? `<p class="text-sm font-medium text-gray-500 mb-4">${sizeText}</p>` : '<div class="mb-4"></div>'}
-                <div class="mt-auto flex flex-col pt-4 border-t border-gray-50">
-                    ${locHtml}
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Precio</span>
-                        <div class="flex items-baseline gap-1">
-                            <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
-                            ${unitHtml}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        let targetCard = currentEditingCard;
+        const matData = { name, brand, category: tagsData, price, unit, t, w, l, loc: loc !== '#' ? loc : '', store, imgSrc };
 
         if (currentMode === 'add') {
-            const grid = document.getElementById('inventory-grid');
-            targetCard = document.createElement('article');
-            targetCard.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
-            grid.appendChild(targetCard);
+            await addDoc(collection(db, 'materials'), matData);
+        } else {
+            await updateDoc(doc(db, 'materials', currentEditingId), matData);
         }
         
-        // Asignamos Data Attributes ocultos para preservar la información intacta al editar
-        targetCard.setAttribute('data-category', tagsData);
-        targetCard.setAttribute('data-name', name);
-        targetCard.setAttribute('data-brand', brand);
-        targetCard.setAttribute('data-price', price);
-        targetCard.setAttribute('data-unit', unit);
-        targetCard.setAttribute('data-t', t);
-        targetCard.setAttribute('data-w', w);
-        targetCard.setAttribute('data-l', l);
-        targetCard.setAttribute('data-loc', loc !== '#' ? loc : '');
-        targetCard.setAttribute('data-store', store);
-        
-        // Inyectamos el contenido visual final
-        targetCard.innerHTML = cardContent;
-        
-        filterMaterials();
-        saveToLocalStorage();
         closeModal();
     }
 
-    function deleteMaterial(btn) {
+    async function deleteMaterial(btn) {
         if (confirm('¿Estás seguro de que deseas eliminar este material?')) {
-            btn.closest('article').remove();
-            filterMaterials();
-            saveToLocalStorage();
+            const id = btn.closest('article').getAttribute('data-id');
+            await deleteDoc(doc(db, 'materials', id));
         }
     }
 
@@ -918,30 +863,19 @@ Limpiar filtros
         }
     }
 
-    // Reconstruye todas las tarjetas (ej: al cambiar moneda o editar un tag/unidad)
-    function rebuildAllCards() {
-        const articles = document.querySelectorAll('#inventory-grid article');
-        articles.forEach(card => {
-            const name = card.getAttribute('data-name');
-            const brand = card.getAttribute('data-brand');
-            const price = card.getAttribute('data-price');
-            const unit = card.getAttribute('data-unit');
-            const t = card.getAttribute('data-t');
-            const w = card.getAttribute('data-w');
-            const l = card.getAttribute('data-l');
-            const loc = card.getAttribute('data-loc');
-            const store = card.getAttribute('data-store');
+    // Dibuja las tarjetas basado en lo que hay en Firebase
+    function renderMaterials() {
+        const grid = document.getElementById('inventory-grid');
+        grid.innerHTML = ''; // Limpiamos
+
+        materialsData.forEach(mat => {
+            const { id, name, brand, category, price, unit, t, w, l, loc, store, imgSrc } = mat;
             
-            // Auto-update location URL if store matches one in settings (keeps URLs synced if edited in Settings)
             let currentLoc = loc;
             const sIndex = stores.findIndex(s => s.name === store);
             if (sIndex !== -1) {
                 currentLoc = stores[sIndex].url || '';
-                card.setAttribute('data-loc', currentLoc !== '#' ? currentLoc : '');
             }
-
-            const imgElem = card.querySelector('img');
-            const imgSrc = imgElem ? imgElem.src : '';
 
             const sizeParts = [];
             if(t) sizeParts.push(`${t}mm`);
@@ -977,7 +911,22 @@ Limpiar filtros
                 }
             }
 
-            card.innerHTML = `
+            const article = document.createElement('article');
+            article.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
+            
+            article.setAttribute('data-id', id);
+            article.setAttribute('data-category', category || '');
+            article.setAttribute('data-name', name || '');
+            article.setAttribute('data-brand', brand || '');
+            article.setAttribute('data-price', price || '');
+            article.setAttribute('data-unit', unit || '');
+            article.setAttribute('data-t', t || '');
+            article.setAttribute('data-w', w || '');
+            article.setAttribute('data-l', l || '');
+            article.setAttribute('data-loc', currentLoc && currentLoc !== '#' ? currentLoc : '');
+            article.setAttribute('data-store', store || '');
+
+            article.innerHTML = `
                 <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
                     ${imageHtml}
                     <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
@@ -1004,8 +953,10 @@ Limpiar filtros
                     </div>
                 </div>
             `;
+            grid.appendChild(article);
         });
-        saveToLocalStorage();
+        
+        filterMaterials();
     }
 
     // --- Filtros de Búsqueda ---
@@ -1069,21 +1020,20 @@ Limpiar filtros
     }
 
     function exportToCSV() {
-        const articles = document.querySelectorAll('#inventory-grid article');
         let csvContent = "Nombre;Marca;Tags;Precio;Unidad;Espesor(mm);Ancho(cm);Largo(cm);Tienda;Link_Tienda\n";
         
-        articles.forEach(card => {
+        materialsData.forEach(mat => {
             const rowData = [
-                card.getAttribute('data-name') || '',
-                card.getAttribute('data-brand') || '',
-                card.getAttribute('data-category') || '',
-                card.getAttribute('data-price') || '',
-                card.getAttribute('data-unit') || '',
-                card.getAttribute('data-t') || '',
-                card.getAttribute('data-w') || '',
-                card.getAttribute('data-l') || '',
-                card.getAttribute('data-store') || '',
-                card.getAttribute('data-loc') || ''
+                mat.name || '',
+                mat.brand || '',
+                mat.category || '',
+                mat.price || '',
+                mat.unit || '',
+                mat.t || '',
+                mat.w || '',
+                mat.l || '',
+                mat.store || '',
+                mat.loc || ''
             ];
             
             const row = rowData.map(field => `"${String(field).replace(/"/g, '""')}"`).join(";");
@@ -1100,22 +1050,21 @@ Limpiar filtros
         document.body.removeChild(link);
     }
 
-    function importFromCSV(event) {
+    async function importFromCSV(event) {
         const file = event.target.files[0];
         if (!file) return;
         
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = async function(e) {
             const text = e.target.result;
             const rows = text.split('\n').map(row => row.trim()).filter(row => row);
             if (rows.length < 2) return alert('El archivo está vacío o no es válido.');
             
-            const grid = document.getElementById('inventory-grid');
             let importedCount = 0;
             let skippedCount = 0;
             
             // Recolectar nombres existentes (en minúsculas) para evitar duplicados
-            const existingNames = new Set(Array.from(grid.querySelectorAll('article')).map(card => (card.getAttribute('data-name') || '').toLowerCase()));
+            const existingNames = new Set(materialsData.map(m => (m.name || '').toLowerCase()));
             
             for (let i = 1; i < rows.length; i++) {
                 const cols = parseCSVRow(rows[i]);
@@ -1149,29 +1098,13 @@ Limpiar filtros
                 if (unit && !units.includes(unit)) units.push(unit);
                 if (store && !stores.some(s => s.name === store)) stores.push({name: store, url: loc !== '#' ? loc : ''});
                 
-                const newCard = document.createElement('article');
-                newCard.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
-                
-                newCard.setAttribute('data-category', tagsData);
-                newCard.setAttribute('data-name', name);
-                newCard.setAttribute('data-brand', brand);
-                newCard.setAttribute('data-price', price);
-                newCard.setAttribute('data-unit', unit);
-                newCard.setAttribute('data-t', t);
-                newCard.setAttribute('data-w', w);
-                newCard.setAttribute('data-l', l);
-                newCard.setAttribute('data-loc', loc !== '#' ? loc : '');
-                newCard.setAttribute('data-store', store);
-                
-                grid.appendChild(newCard);
+                const newMat = { name, brand, category: tagsData, price, unit, t, w, l, loc: loc !== '#' ? loc : '', store, imgSrc: '' };
+                await addDoc(collection(db, 'materials'), newMat);
                 importedCount++;
             }
             
             if (importedCount > 0) {
-                saveSettings();
-                renderSettings();
-                rebuildAllCards();
-                filterMaterials();
+                await saveSettings();
                 let msg = `¡Se importaron ${importedCount} materiales exitosamente!`;
                 if (skippedCount > 0) msg += `\nSe omitieron ${skippedCount} materiales que ya existían.`;
                 alert(msg);
@@ -1188,31 +1121,75 @@ Limpiar filtros
         reader.readAsText(file);
     }
 
-    // --- Persistencia con LocalStorage ---
-    function saveToLocalStorage() {
-        const grid = document.getElementById('inventory-grid');
-        try {
-            localStorage.setItem('inventoryData', grid.innerHTML);
-        } catch (e) {
-            alert('No se pudo guardar la información. La memoria de tu navegador podría estar llena.');
+    // --- Migración Automática de LocalStorage a Firebase ---
+    async function migrateLocalToFirebase() {
+        if (localStorage.getItem('inventoryData') && !localStorage.getItem('migratedToFirebase')) {
+            console.log("Migrando inventario a la nube...");
+            
+            // Subir materiales locales
+            const tempGrid = document.createElement('div');
+            tempGrid.innerHTML = localStorage.getItem('inventoryData');
+            const articles = tempGrid.querySelectorAll('article');
+            
+            for (let card of articles) {
+                const data = {
+                    name: card.getAttribute('data-name') || '',
+                    brand: card.getAttribute('data-brand') || '',
+                    category: card.getAttribute('data-category') || '',
+                    price: card.getAttribute('data-price') || '',
+                    unit: card.getAttribute('data-unit') || '',
+                    t: card.getAttribute('data-t') || '',
+                    w: card.getAttribute('data-w') || '',
+                    l: card.getAttribute('data-l') || '',
+                    loc: card.getAttribute('data-loc') || '',
+                    store: card.getAttribute('data-store') || '',
+                    imgSrc: card.querySelector('img')?.src || ''
+                };
+                await addDoc(collection(db, 'materials'), data);
+            }
+
+            // Subir ajustes locales
+            const lTags = localStorage.getItem('inventoryTags');
+            const lUnits = localStorage.getItem('inventoryUnits');
+            const lCur = localStorage.getItem('inventoryCurrency');
+            const lStores = localStorage.getItem('inventoryStores');
+            
+            const initSettings = {};
+            if(lTags) try { initSettings.tags = JSON.parse(lTags); } catch(e){}
+            if(lUnits) try { initSettings.units = JSON.parse(lUnits); } catch(e){}
+            if(lCur) initSettings.currencySymbol = lCur;
+            if(lStores) try { initSettings.stores = JSON.parse(lStores); } catch(e){}
+            
+            await setDoc(doc(db, "settings", "global"), initSettings, {merge: true});
+            
+            // Marcar como migrado
+            localStorage.setItem('migratedToFirebase', 'true');
+            console.log("¡Migración completada! Tu inventario ahora está en Firebase.");
         }
     }
 
-    function loadFromLocalStorage() {
-        const savedData = localStorage.getItem('inventoryData');
-        if (savedData) {
-            document.getElementById('inventory-grid').innerHTML = savedData;
-            document.querySelectorAll('#inventory-grid article').forEach(card => card.classList.add('cursor-pointer'));
-            rebuildAllCards(); // Reconstruye todas las tarjetas guardadas para usar el diseño más reciente sin el ícono
-            filterMaterials(); // Asegura aplicar la búsqueda actual y mostrar el empty state si es necesario
-        }
-    }
-
-    // Cargar los datos automáticamente apenas se abra la página
     document.addEventListener('DOMContentLoaded', () => {
-        loadSettings();
-        loadFromLocalStorage();
+        migrateLocalToFirebase();
     });
+
+    // Exponemos las funciones al entorno global (`window`) para que los botones HTML las detecten
+    window.openModal = openModal;
+    window.closeModal = closeModal;
+    window.saveMaterial = saveMaterial;
+    window.deleteMaterial = deleteMaterial;
+    window.clearFilters = clearFilters;
+    window.openSettingsModal = openSettingsModal;
+    window.closeSettingsModal = closeSettingsModal;
+    window.addTag = addTag; window.removeTag = removeTag; window.editTag = editTag;
+    window.addUnit = addUnit; window.removeUnit = removeUnit; window.editUnit = editUnit;
+    window.addStore = addStore; window.editStore = editStore; window.removeStore = removeStore;
+    window.updateCurrency = updateCurrency;
+    window.exportToCSV = exportToCSV;
+    window.importFromCSV = importFromCSV;
+    window.toggleFormTag = toggleFormTag;
+    window.openViewModal = openViewModal;
+    window.closeViewModal = closeViewModal;
+    window.filterMaterials = filterMaterials;
     
     // Clic en toda la tarjeta para ver Modal de Visualización
     document.getElementById('inventory-grid').addEventListener('click', function(e) {
