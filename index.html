@@ -256,27 +256,28 @@ Limpiar filtros
 
 <!-- View Material Modal -->
 <div id="view-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-gray-900/20 backdrop-blur-sm">
-<div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-<div id="view-img-container" class="relative w-full h-64 bg-gray-50 shrink-0">
+<div class="bg-white w-full max-w-3xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+<div class="flex flex-col md:flex-row h-full overflow-hidden max-h-[90vh]">
+<!-- Left: Image -->
+<div class="w-full md:w-2/5 bg-gray-50 flex flex-col shrink-0 relative">
+<div id="view-img-container" class="relative w-full aspect-square md:aspect-auto md:h-full bg-gray-100 shrink-0">
 <!-- Image injected here via JS -->
 </div>
-<div class="p-8 overflow-y-auto flex-1">
-<div id="view-tags" class="flex flex-wrap gap-2 mb-4"></div>
+</div>
+<!-- Right: Details -->
+<div class="p-6 md:p-8 overflow-y-auto flex-1 w-full flex flex-col bg-white">
+<div class="flex justify-between items-start mb-1">
+<div id="view-tags" class="flex flex-wrap gap-2 mb-3"></div>
+<button onclick="closeViewModal()" class="w-8 h-8 hidden md:flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400 shrink-0">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
 <p id="view-brand" class="text-xs font-bold text-primary/60 uppercase tracking-widest mb-1"></p>
-<h2 id="view-title" class="text-2xl font-bold text-gray-900 leading-tight mb-6"></h2>
-<div class="space-y-4">
-<div class="flex items-center justify-between py-3 border-b border-gray-50">
-<span class="text-sm font-semibold text-gray-500">Precio</span>
-<span id="view-price" class="text-lg font-bold text-gray-900"></span>
+<h2 id="view-title" class="text-3xl font-extrabold text-gray-900 leading-tight mb-6"></h2>
+<div class="space-y-3 mt-2 flex-1">
+<h4 class="text-sm font-bold text-gray-700 border-b border-gray-100 pb-2 mb-3">Opciones y Precios</h4>
+<div id="view-variants-list" class="flex flex-col gap-3"></div>
 </div>
-<div class="py-3 border-b border-gray-50">
-<span class="text-sm font-semibold text-gray-500 block mb-3">Dimensiones</span>
-<div id="view-dimensions" class="flex flex-wrap gap-3"></div>
-</div>
-<div class="pt-3">
-<a id="view-loc" href="#" target="_blank" class="hidden w-full items-center justify-center gap-2 bg-gray-50 text-gray-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors">
-<span class="material-symbols-outlined text-lg">storefront</span> Ver ubicación o compra
-</a>
 </div>
 </div>
 </div>
@@ -312,6 +313,7 @@ Limpiar filtros
     let currentEditingId = null;
     let currentImageBase64 = ''; // Guardará la imagen subida
     let materialsData = []; // Array donde mantendremos sincronizada la base de datos
+    let groupedMaterials = []; // Array donde fusionaremos los materiales iguales
 
     // Escuchar cambios en el input de imagen para convertirla y poder mostrarla
     document.getElementById('mat-img').addEventListener('change', function(e) {
@@ -619,7 +621,7 @@ Limpiar filtros
         document.getElementById('settings-modal').classList.add('hidden');
     }
 
-    function openModal(mode, btn = null) {
+    function openModal(mode, btn = null, directId = null) {
         currentMode = mode;
         modal.classList.remove('hidden');
         
@@ -633,108 +635,72 @@ Limpiar filtros
                 btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
             });
             currentImageBase64 = ''; // Limpiamos si hay una imagen previa almacenada
+            currentEditingId = null;
         } else if (mode === 'edit') {
             document.getElementById('modal-title').textContent = 'Editar Material';
             document.getElementById('modal-desc').textContent = 'Modifica la información del material.';
-            currentEditingCard = btn.closest('article');
-            currentEditingId = currentEditingCard.getAttribute('data-id');
             
-            // Extraer información de la tarjeta
-            const title = currentEditingCard.getAttribute('data-name') || currentEditingCard.querySelector('h3').textContent;
-            const brandElem = currentEditingCard.querySelector('p.uppercase');
-            const brand = currentEditingCard.getAttribute('data-brand') || (brandElem ? brandElem.textContent : '');
+            let idToEdit = directId;
+            if (!idToEdit && btn) idToEdit = btn.closest('article').getAttribute('data-id');
             
-            // Obtener el tag de manera compatible con tarjetas antiguas o nuevas
-            let categoryStr = currentEditingCard.getAttribute('data-category') || '';
-            const cardTags = categoryStr.split(',').map(s => s.trim()).filter(Boolean);
-
-            const priceElem = currentEditingCard.querySelector('.text-xl.font-bold, .text-2xl.font-extrabold');
-            const priceText = priceElem ? priceElem.textContent : '';
-            const price = currentEditingCard.getAttribute('data-price') || priceText.replace(/[^0-9]/g, '');
-            const unit = currentEditingCard.getAttribute('data-unit') || 'u';
-            
-            let t = currentEditingCard.getAttribute('data-t') || '';
-            let w = currentEditingCard.getAttribute('data-w') || '';
-            let l = currentEditingCard.getAttribute('data-l') || '';
-
-            // Compatibilidad tarjetas antiguas
-            if (!t && !w && !l) {
-                const sizeSpans = Array.from(currentEditingCard.querySelectorAll('.mb-4 + .flex span.text-xs'));
-                const sizeMatch = sizeSpans.map(s => s.textContent).join(' - ').match(/([\d.]+)mm\s*(?:x|×)\s*([\d.]+)cm\s*(?:x|×)\s*([\d.]+)cm/);
-                if (sizeMatch) { t = sizeMatch[1]; w = sizeMatch[2]; l = sizeMatch[3]; }
-            }
-
-            const imgElem = currentEditingCard.querySelector('img');
-            const imgSrc = imgElem ? imgElem.src : '';
-            
-            let locVal = currentEditingCard.getAttribute('data-loc');
-            if (locVal === null) locVal = '';
-            let storeVal = currentEditingCard.getAttribute('data-store') || '';
+            const mat = materialsData.find(m => m.id === idToEdit);
+            if (!mat) return;
+            currentEditingId = idToEdit;
             
             // Llenar el formulario con los datos extraídos
-            document.getElementById('mat-name').value = title;
-            document.getElementById('mat-brand').value = brand;
+            document.getElementById('mat-name').value = mat.name || '';
+            document.getElementById('mat-brand').value = mat.brand || '';
             
             // Tags Selection
-            document.querySelectorAll('#mat-tags-selection button').forEach(btn => {
-                const isSelected = cardTags.includes(btn.innerText.trim());
+            const cardTags = (mat.category || '').split(',').map(s => s.trim()).filter(Boolean);
+            document.querySelectorAll('#mat-tags-selection button').forEach(tagBtn => {
+                const isSelected = cardTags.includes(tagBtn.innerText.trim());
                 if (isSelected) {
-                    btn.setAttribute('data-selected', 'true');
-                    btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-primary bg-primary-soft text-primary';
+                    tagBtn.setAttribute('data-selected', 'true');
+                    tagBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-primary bg-primary-soft text-primary';
                 } else {
-                    btn.setAttribute('data-selected', 'false');
-                    btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
+                    tagBtn.setAttribute('data-selected', 'false');
+                    tagBtn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
                 }
             });
             
-            document.getElementById('mat-price').value = price;
-            document.getElementById('mat-price-unit').value = unit;
-            document.getElementById('mat-thickness').value = t;
-            document.getElementById('mat-width').value = w;
-            document.getElementById('mat-length').value = l;
+            document.getElementById('mat-price').value = mat.price || '';
+            document.getElementById('mat-price-unit').value = mat.unit || 'u';
+            document.getElementById('mat-thickness').value = mat.t || '';
+            document.getElementById('mat-width').value = mat.w || '';
+            document.getElementById('mat-length').value = mat.l || '';
             
             const storeSelect = document.getElementById('mat-store-select');
             storeSelect.value = '';
-            const sIndex = stores.findIndex(s => s.name === storeVal);
+            const sIndex = stores.findIndex(s => s.name === mat.store);
             if (sIndex !== -1) storeSelect.value = sIndex;
             
-            currentImageBase64 = imgSrc; // Mantenemos la imagen actual de la tarjeta si el usuario no sube una nueva
+            currentImageBase64 = mat.imgSrc || '';
         }
     }
 
-    function openViewModal(card) {
-        const name = card.getAttribute('data-name');
-        const brand = card.getAttribute('data-brand');
-        const tagsStr = card.getAttribute('data-category');
-        const price = card.getAttribute('data-price');
-        const unit = card.getAttribute('data-unit');
-        const t = card.getAttribute('data-t');
-        const w = card.getAttribute('data-w');
-        const l = card.getAttribute('data-l');
-        const loc = card.getAttribute('data-loc');
-        const store = card.getAttribute('data-store');
-        
-        const imgElem = card.querySelector('img');
-        const imgSrc = imgElem ? imgElem.src : '';
+    function openViewModal(nameKey) {
+        const group = groupedMaterials.find(g => g.nameKey === nameKey);
+        if (!group) return;
 
-        document.getElementById('view-title').textContent = name || 'Sin nombre';
-        document.getElementById('view-brand').textContent = brand || '';
-        document.getElementById('view-brand').style.display = brand ? 'block' : 'none';
+        document.getElementById('view-title').textContent = group.name || 'Sin nombre';
+        document.getElementById('view-brand').textContent = group.brand || '';
+        document.getElementById('view-brand').style.display = group.brand ? 'block' : 'none';
         
         const imgContainer = document.getElementById('view-img-container');
-        if (imgSrc) {
+        if (group.imgSrc) {
             imgContainer.innerHTML = `
-                <img src="${imgSrc}" class="w-full h-full object-cover">
-                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm">
+                <img src="${group.imgSrc}" class="w-full h-full object-cover absolute inset-0">
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex md:hidden items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm z-10">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             `;
         } else {
             imgContainer.innerHTML = `
-                <div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300">
+                <div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300 absolute inset-0">
                     <span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span>
                 </div>
-                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm">
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex md:hidden items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm z-10">
                     <span class="material-symbols-outlined">close</span>
                 </button>
             `;
@@ -742,41 +708,66 @@ Limpiar filtros
 
         const tagsContainer = document.getElementById('view-tags');
         tagsContainer.innerHTML = '';
-        if (tagsStr) {
-            const tagArr = tagsStr.split(',').map(s=>s.trim()).filter(Boolean);
+        if (group.category) {
+            const tagArr = group.category.split(',').map(s=>s.trim()).filter(Boolean);
             tagArr.forEach(tag => {
                 tagsContainer.innerHTML += `<span class="bg-primary-soft text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">${tag}</span>`;
             });
         }
 
-        let formattedPrice = '-';
-        if (price) {
-            formattedPrice = currencySymbol + Number(price).toLocaleString('es-CL');
-            if (unit) formattedPrice += ` / ${unit}`;
-        }
-        document.getElementById('view-price').textContent = formattedPrice;
+        const variantsContainer = document.getElementById('view-variants-list');
+        variantsContainer.innerHTML = '';
+        
+        group.variants.forEach(v => {
+            const sizeParts = [];
+            if(v.t) sizeParts.push(`${v.t}mm`);
+            if(v.w) sizeParts.push(`${v.w}cm`);
+            if(v.l) sizeParts.push(`${v.l}cm`);
+            const sizeText = sizeParts.join(' × ');
 
-        const dimContainer = document.getElementById('view-dimensions');
-        dimContainer.innerHTML = '';
-        if (t) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Espesor"><span class="material-symbols-outlined text-[16px] text-gray-400">line_weight</span><span class="text-sm font-semibold text-gray-700">${t}mm</span></div>`;
-        if (w) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Ancho"><span class="material-symbols-outlined text-[16px] text-gray-400">swap_horiz</span><span class="text-sm font-semibold text-gray-700">${w}cm</span></div>`;
-        if (l) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Largo"><span class="material-symbols-outlined text-[16px] text-gray-400">swap_vert</span><span class="text-sm font-semibold text-gray-700">${l}cm</span></div>`;
-        if (!t && !w && !l) dimContainer.innerHTML = '<span class="text-sm text-gray-400">Sin dimensiones registradas</span>';
+            let priceValue = '-';
+            if (v.price) {
+                priceValue = currencySymbol + Number(v.price).toLocaleString('es-CL');
+                if (v.unit) priceValue += ` <span class="text-xs font-semibold text-gray-500">/ ${v.unit}</span>`;
+            }
 
-        const locBtn = document.getElementById('view-loc');
-        if (loc && loc !== '#') { 
-            locBtn.href = loc; 
-            locBtn.target = "_blank";
-            locBtn.style.display = 'flex'; 
-            locBtn.innerHTML = `<span class="material-symbols-outlined text-lg">storefront</span> ${store ? 'Comprar en ' + store : 'Ver ubicación o compra'}`;
-        } else if (store) {
-            locBtn.removeAttribute('href');
-            locBtn.removeAttribute('target');
-            locBtn.style.display = 'flex'; 
-            locBtn.innerHTML = `<span class="material-symbols-outlined text-lg">storefront</span> ${store}`;
-        } else { 
-            locBtn.style.display = 'none'; 
-        }
+            let currentLoc = v.loc;
+            const sIndex = stores.findIndex(s => s.name === v.store);
+            if (sIndex !== -1 && stores[sIndex].url) {
+                currentLoc = stores[sIndex].url;
+            }
+
+            let storeHtml = '';
+            if (v.store) {
+                if (currentLoc && currentLoc !== '#') {
+                    storeHtml = `<a href="${currentLoc}" target="_blank" class="text-xs font-bold text-primary hover:underline flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storefront</span> ${v.store}</a>`;
+                } else {
+                    storeHtml = `<span class="text-xs font-bold text-gray-600 flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">storefront</span> ${v.store}</span>`;
+                }
+            }
+
+            variantsContainer.innerHTML += `
+                <div class="bg-gray-50 rounded-2xl p-4 flex flex-col gap-3 border border-gray-100 hover:border-primary/20 transition-colors">
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex flex-col gap-1">
+                            ${sizeText ? `<span class="bg-white border border-gray-100 px-2.5 py-1 rounded-lg text-xs font-bold text-gray-700 w-fit">${sizeText}</span>` : ''}
+                            ${storeHtml}
+                        </div>
+                        <div class="flex items-center gap-1 bg-white p-1 rounded-xl border border-gray-100 shadow-sm shrink-0">
+                            <button onclick="openModal('edit', null, '${v.id}'); closeViewModal();" type="button" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-primary hover:bg-primary-soft transition-colors" title="Editar">
+                                <span class="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            <button onclick="deleteMaterial(null, '${v.id}'); closeViewModal();" type="button" class="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-red-500 hover:bg-red-50 transition-colors" title="Eliminar">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-end justify-between mt-1">
+                        <span class="text-lg font-extrabold text-gray-900 leading-none">${priceValue}</span>
+                    </div>
+                </div>
+            `;
+        });
 
         document.getElementById('view-modal').classList.remove('hidden');
     }
@@ -838,10 +829,11 @@ Limpiar filtros
         closeModal();
     }
 
-    async function deleteMaterial(btn) {
+    async function deleteMaterial(btn, directId = null) {
         if (confirm('¿Estás seguro de que deseas eliminar este material?')) {
-            const id = btn.closest('article').getAttribute('data-id');
-            await deleteDoc(doc(db, 'materials', id));
+            let idToDelete = directId;
+            if (!idToDelete && btn) idToDelete = btn.closest('article').getAttribute('data-id');
+            if (idToDelete) await deleteDoc(doc(db, 'materials', idToDelete));
         }
     }
 
@@ -863,93 +855,176 @@ Limpiar filtros
         }
     }
 
+    // Calcula la agrupación de materiales
+    function computeGroups() {
+        const groupsMap = {};
+        materialsData.forEach(mat => {
+            const nameKey = (mat.name || 'Sin nombre').trim().toLowerCase();
+            if (!groupsMap[nameKey]) {
+                groupsMap[nameKey] = {
+                    nameKey: nameKey,
+                    name: mat.name || 'Sin nombre',
+                    brand: mat.brand || '',
+                    category: new Set(),
+                    imgSrc: mat.imgSrc || '',
+                    variants: []
+                };
+            }
+            const group = groupsMap[nameKey];
+            if (!group.imgSrc && mat.imgSrc) group.imgSrc = mat.imgSrc;
+            if (!group.brand && mat.brand) group.brand = mat.brand;
+            
+            (mat.category || '').split(',').map(s=>s.trim()).filter(Boolean).forEach(t => group.category.add(t));
+            
+            group.variants.push(mat);
+        });
+        
+        groupedMaterials = Object.values(groupsMap).map(g => ({
+            ...g,
+            category: Array.from(g.category).join(', ')
+        }));
+        
+        // Orden alfabético por defecto para el grid
+        groupedMaterials.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     // Dibuja las tarjetas basado en lo que hay en Firebase
     function renderMaterials() {
+        computeGroups();
         const grid = document.getElementById('inventory-grid');
         grid.innerHTML = ''; // Limpiamos
 
-        materialsData.forEach(mat => {
-            const { id, name, brand, category, price, unit, t, w, l, loc, store, imgSrc } = mat;
+        groupedMaterials.forEach(group => {
+            const variants = group.variants;
+            const vCount = variants.length;
             
-            let currentLoc = loc;
-            const sIndex = stores.findIndex(s => s.name === store);
-            if (sIndex !== -1) {
-                currentLoc = stores[sIndex].url || '';
+            let minPrice = null;
+            variants.forEach(v => {
+                if (v.price) {
+                    const p = Number(v.price);
+                    if (minPrice === null || p < minPrice) minPrice = p;
+                }
+            });
+
+            const uniqueStores = new Set(variants.map(v => v.store).filter(Boolean));
+            let storeText = '';
+            let storeLoc = '';
+            if (uniqueStores.size === 1) {
+                storeText = Array.from(uniqueStores)[0];
+                const sIndex = stores.findIndex(s => s.name === storeText);
+                if (sIndex !== -1) storeLoc = stores[sIndex].url || '';
+            } else if (uniqueStores.size > 1) {
+                storeText = 'Varias tiendas';
+                storeLoc = '#';
             }
 
             const sizeParts = [];
-            if(t) sizeParts.push(`${t}mm`);
-            if(w) sizeParts.push(`${w}cm`);
-            if(l) sizeParts.push(`${l}cm`);
-            const sizeText = sizeParts.join(' × ');
+            let sizeText = '';
+            if (vCount === 1) {
+                const v = variants[0];
+                if(v.t) sizeParts.push(`${v.t}mm`);
+                if(v.w) sizeParts.push(`${v.w}cm`);
+                if(v.l) sizeParts.push(`${v.l}cm`);
+                sizeText = sizeParts.join(' × ');
+            }
 
-            let priceValue = '-';
-            let unitHtml = '';
-            if (price) {
-                priceValue = currencySymbol + Number(price).toLocaleString('es-CL');
-                if (unit) unitHtml = `<span class="text-sm font-semibold text-gray-500">/ ${unit}</span>`;
+            let priceHtml = '';
+            if (vCount === 1) {
+                const v = variants[0];
+                let priceValue = '-';
+                let unitHtml = '';
+                if (v.price) {
+                    priceValue = currencySymbol + Number(v.price).toLocaleString('es-CL');
+                    if (v.unit) unitHtml = `<span class="text-sm font-semibold text-gray-500">/ ${v.unit}</span>`;
+                }
+                priceHtml = `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Precio</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
+                            ${unitHtml}
+                        </div>
+                    </div>
+                `;
+            } else {
+                let priceValue = '-';
+                if (minPrice !== null) {
+                    priceValue = currencySymbol + minPrice.toLocaleString('es-CL');
+                }
+                priceHtml = `
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Desde</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
+                        </div>
+                    </div>
+                `;
             }
             
-            const imageHtml = imgSrc 
-                ? `<img alt="${name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${imgSrc}">`
+            let sizeHtml = '';
+            if (vCount === 1) {
+                sizeHtml = sizeText ? `<p class="text-sm font-medium text-gray-500 mb-4">${sizeText}</p>` : '<div class="mb-4"></div>';
+            } else {
+                sizeHtml = `<div class="mb-4"><span class="inline-flex items-center gap-1.5 bg-primary-soft text-primary px-2.5 py-1 rounded-lg text-xs font-bold">${vCount} opciones</span></div>`;
+            }
+
+            const imageHtml = group.imgSrc 
+                ? `<img alt="${group.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${group.imgSrc}">`
                 : `<div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300"><span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span></div>`;
 
             let locHtml = ``;
-            if (store) {
-                if (currentLoc && currentLoc !== '#') {
+            if (storeText) {
+                if (storeLoc && storeLoc !== '#') {
                     locHtml = `
-                    <a href="${currentLoc}" target="_blank" onclick="event.stopPropagation()" class="w-fit flex items-center gap-1.5 bg-primary-soft text-primary px-3 py-1.5 rounded-xl hover:bg-primary hover:text-white transition-colors max-w-[200px] shadow-sm mb-3" title="Comprar en ${store}">
+                    <a href="${storeLoc}" target="_blank" onclick="event.stopPropagation()" class="w-fit flex items-center gap-1.5 bg-primary-soft text-primary px-3 py-1.5 rounded-xl hover:bg-primary hover:text-white transition-colors max-w-[200px] shadow-sm mb-3" title="Comprar en ${storeText}">
                         <span class="material-symbols-outlined text-[16px]">storefront</span>
-                        <span class="text-xs font-bold truncate">${store}</span>
+                        <span class="text-xs font-bold truncate">${storeText}</span>
                     </a>`;
                 } else {
                     locHtml = `
-                    <span class="w-fit flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-xl max-w-[200px] mb-3" title="${store}">
+                    <span class="w-fit flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-xl max-w-[200px] mb-3" title="${storeText}">
                         <span class="material-symbols-outlined text-[16px]">storefront</span>
-                        <span class="text-xs font-bold truncate">${store}</span>
+                        <span class="text-xs font-bold truncate">${storeText}</span>
                     </span>`;
                 }
+            }
+
+            let hoverButtons = '';
+            if (vCount === 1) {
+                hoverButtons = `
+                    <button type="button" onclick="openModal('edit', null, '${variants[0].id}'); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors active:scale-95" title="Editar">
+                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button type="button" onclick="deleteMaterial(null, '${variants[0].id}'); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors active:scale-95" title="Eliminar">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                `;
+            } else {
+                hoverButtons = `
+                    <div class="bg-white/90 backdrop-blur-md rounded-full px-3 py-1.5 flex items-center justify-center text-primary shadow-sm font-bold text-[10px] tracking-widest uppercase">
+                        Ver todo
+                    </div>
+                `;
             }
 
             const article = document.createElement('article');
             article.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
             
-            article.setAttribute('data-id', id);
-            article.setAttribute('data-category', category || '');
-            article.setAttribute('data-name', name || '');
-            article.setAttribute('data-brand', brand || '');
-            article.setAttribute('data-price', price || '');
-            article.setAttribute('data-unit', unit || '');
-            article.setAttribute('data-t', t || '');
-            article.setAttribute('data-w', w || '');
-            article.setAttribute('data-l', l || '');
-            article.setAttribute('data-loc', currentLoc && currentLoc !== '#' ? currentLoc : '');
-            article.setAttribute('data-store', store || '');
+            article.setAttribute('data-name-key', group.nameKey);
 
             article.innerHTML = `
                 <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
                     ${imageHtml}
                     <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
-                        <button type="button" onclick="openModal('edit', this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors active:scale-95" title="Editar">
-                            <span class="material-symbols-outlined text-[18px]">edit</span>
-                        </button>
-                        <button type="button" onclick="deleteMaterial(this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors active:scale-95" title="Eliminar">
-                            <span class="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
+                        ${hoverButtons}
                     </div>
                 </div>
                 <div class="p-5 flex flex-col flex-1 bg-white">
-                    <h3 class="text-xl font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1">${name}</h3>
-                    ${sizeText ? `<p class="text-sm font-medium text-gray-500 mb-4">${sizeText}</p>` : '<div class="mb-4"></div>'}
+                    <h3 class="text-xl font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1">${group.name}</h3>
+                    ${sizeHtml}
                     <div class="mt-auto flex flex-col pt-4 border-t border-gray-50">
                         ${locHtml}
-                        <div class="flex flex-col">
-                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Precio</span>
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
-                                ${unitHtml}
-                            </div>
-                        </div>
+                        ${priceHtml}
                     </div>
                 </div>
             `;
@@ -967,13 +1042,13 @@ Limpiar filtros
         
         let visibleCount = 0;
         articles.forEach(article => {
-            const title = (article.getAttribute('data-name') || article.querySelector('h3')?.textContent || '').toLowerCase();
-            const brand = (article.getAttribute('data-brand') || article.querySelector('p.uppercase')?.textContent || '').toLowerCase();
-            const itemCategory = (article.getAttribute('data-category') || '').toLowerCase();
+            const nameKey = article.getAttribute('data-name-key');
+            const group = groupedMaterials.find(g => g.nameKey === nameKey);
+            if(!group) return;
             
             // El material se muestra si coincide parte del título o marca y si la categoría seleccionada encaja.
-            const matchesQuery = title.includes(query) || brand.includes(query);
-            const matchesCategory = category === '' || itemCategory.split(',').map(s=>s.trim()).includes(category);
+            const matchesQuery = group.name.toLowerCase().includes(query) || group.brand.toLowerCase().includes(query);
+            const matchesCategory = category === '' || group.category.toLowerCase().split(',').map(s=>s.trim()).includes(category);
             
             if (matchesQuery && matchesCategory) {
                 article.style.display = '';
@@ -1195,7 +1270,8 @@ Limpiar filtros
     document.getElementById('inventory-grid').addEventListener('click', function(e) {
         const article = e.target.closest('article');
         if (!article || e.target.closest('button') || e.target.closest('a')) return;
-        openViewModal(article);
+        const nameKey = article.getAttribute('data-name-key');
+        if (nameKey) openViewModal(nameKey);
     });
 </script>
 </body></html>
