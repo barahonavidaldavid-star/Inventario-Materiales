@@ -65,18 +65,18 @@
 <!-- Integrated Search Bar: Friendly and softer -->
 <div class="hidden md:flex items-center bg-gray-50 pl-5 pr-2 py-2 rounded-2xl w-[600px] gap-2 border border-gray-100 focus-within:bg-white focus-within:ring-4 focus-within:ring-primary/10 transition-all duration-300">
 <span class="material-symbols-outlined text-gray-400">search</span>
-<input class="bg-transparent border-none focus:ring-0 w-full text-sm placeholder:text-gray-400 font-medium px-2 py-1" placeholder="¿Qué material estás buscando hoy?..." type="text">
+<input id="search-input" oninput="filterMaterials()" class="bg-transparent border-none focus:ring-0 w-full text-sm placeholder:text-gray-400 font-medium px-2 py-1" placeholder="¿Qué material estás buscando hoy?..." type="text">
 <div class="h-6 w-px bg-gray-200 shrink-0 mx-1"></div>
-<select class="bg-transparent border-none focus:ring-0 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700 py-1 pl-3 pr-8 shrink-0">
+<select id="search-category" onchange="filterMaterials()" class="bg-transparent border-none focus:ring-0 text-sm font-medium text-gray-500 cursor-pointer hover:text-gray-700 py-1 pl-3 pr-8 shrink-0">
 <option value="">Todas las categorías</option>
-<option value="blanca">Maqueta Blanca</option>
-<option value="maderas">Maderas</option>
-<option value="polimeros">Polímeros</option>
-<option value="papeles">Papeles</option>
 </select>
 </div>
 </div>
-<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<button onclick="openSettingsModal()" class="bg-white border-2 border-gray-100 text-gray-700 px-5 py-2.5 rounded-2xl font-bold text-sm flex items-center gap-2 hover:border-primary/20 hover:text-primary transition-all shadow-sm active:scale-95">
+<span class="material-symbols-outlined text-lg">settings</span>
+                Ajustes
+            </button>
 <button onclick="openModal('add')" class="bg-primary text-white px-6 py-3 rounded-2xl font-bold text-sm flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-primary/20 active:scale-95">
 <span class="material-symbols-outlined text-lg">add_circle</span>
                 Nuevo
@@ -91,55 +91,18 @@
 <p class="text-gray-500 mt-1 font-medium">Explora y organiza tus suministros para maquetas.</p>
 </div>
 <!-- Inventory Grid -->
-<div id="inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-<!-- Single "Cartón Pluma" Card: Student Friendly Style -->
-<article class="group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5">
-<div class="relative w-full aspect-square overflow-hidden bg-gray-50">
-<img alt="Cartón Pluma Motarro" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Close-up of clean white foam board sheets with smooth texture on a minimalist architect desk in bright natural daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLFSGXo9ndwPuX9wplypyrt5IqcQxmQZJEA_twH2nU5NTQcErda5WNBLnOsxzScR83PSt8SYS2z7WFs5K-Gkyyc3JX9yySmV7UR9HT-HtS74bcmU1kBeK2c94gl69XwqVlXj0OS0dSjSvhyIqSguVk-HQ1Dak1K85FJc9ebu7pP16uTWmryN8a2Qt1Vs1Zwk9VXNCPlXbzJWNO96MjYdkeEQBybHa150dJ9K1gd5NR8qOk81K_1JwWUxaGIhX247NgnZsYvsbXIE0">
-<div class="absolute top-4 left-4">
-<span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">Maqueta Blanca</span>
-</div>
-<div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-<button type="button" onclick="openModal('edit', this)" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors" title="Editar">
-<span class="material-symbols-outlined text-[18px]">edit</span>
-</button>
-<button type="button" onclick="deleteMaterial(this)" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors" title="Eliminar">
-<span class="material-symbols-outlined text-[18px]">delete</span>
-</button>
-</div>
-</div>
-<div class="p-6">
-<div class="mb-4">
-<p class="text-[11px] font-bold text-primary/60 uppercase tracking-widest mb-1">Motarro</p>
-<h3 class="text-lg font-bold text-gray-900 leading-tight">Cartón Pluma</h3>
-</div>
-<div class="flex items-center gap-2 mb-4">
-<div class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-lg">
-<span class="material-symbols-outlined text-sm text-gray-400">straighten</span>
-<span class="text-xs font-semibold text-gray-600">3 mm</span>
-</div>
-<div class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-lg">
-<span class="text-xs font-semibold text-gray-600">400x600</span>
-</div>
-</div>
-<div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
-<span class="text-xl font-bold text-gray-900">$2.300</span>
-<a class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary-soft transition-colors" href="https://maps.app.goo.gl/vqK9zwgwHbV5gNgX8" target="_blank" title="Ver Ubicación">
-<span class="material-symbols-outlined text-xl">location_on</span>
-</a>
-</div>
-</div>
-</article>
+<div id="inventory-grid" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+<!-- Las tarjetas se insertarán dinámicamente aquí -->
 </div>
 
 <!-- Empty State (Hidden by default, remove 'hidden' class via JS to display) -->
-<div id="empty-state" class="hidden flex-col items-center justify-center py-16 text-center">
+<div id="empty-state" class="flex flex-col items-center justify-center py-16 text-center">
 <div class="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 border border-gray-100">
 <span class="material-symbols-outlined text-gray-400 text-5xl">search_off</span>
 </div>
 <h3 class="text-2xl font-bold text-gray-900 mb-2">No se encontraron materiales</h3>
 <p class="text-gray-500 font-medium max-w-sm mx-auto mb-6 text-sm">No hay resultados que coincidan con tu búsqueda. Intenta con otros términos o cambia la categoría.</p>
-<button class="bg-white border-2 border-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-bold text-sm hover:border-primary/20 hover:text-primary transition-all active:scale-95">
+<button onclick="clearFilters()" class="bg-white border-2 border-gray-100 text-gray-700 px-6 py-2.5 rounded-xl font-bold text-sm hover:border-primary/20 hover:text-primary transition-all active:scale-95">
 Limpiar filtros
 </button>
 </div>
@@ -149,8 +112,8 @@ Limpiar filtros
 <div class="bg-white w-full max-w-xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[921px]" data-stitch-vh="max-h-[921px]===max-h-[90vh]">
 <div class="px-8 py-6 flex justify-between items-center">
 <div>
-<h2 id="modal-title" class="text-2xl font-bold text-gray-900">Añadir material</h2>
-<p id="modal-desc" class="text-gray-500 text-sm font-medium">Completa los datos para tu nuevo recurso.</p>
+<h2 id="modal-title" class="text-2xl font-bold text-gray-900">Nuevo Material</h2>
+<p id="modal-desc" class="text-gray-500 text-sm font-medium">Ingresa la información del material.</p>
 </div>
 <button onclick="closeModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400">
 <span class="material-symbols-outlined">close</span>
@@ -160,38 +123,55 @@ Limpiar filtros
 <form id="material-form" onsubmit="saveMaterial(event)" class="space-y-6">
 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 <div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">¿Cómo se llama?</label>
-<input id="mat-name" required class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="Ej: Cartón Madera" type="text">
+<label class="text-sm font-bold text-gray-700 ml-1">Nombre</label>
+<input id="mat-name" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="Ej: Cartón Madera" type="text">
 </div>
 <div class="space-y-2">
 <label class="text-sm font-bold text-gray-700 ml-1">Marca</label>
 <input id="mat-brand" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="Ej: Canson" type="text">
 </div>
-<div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">Tipo de material</label>
-<select id="mat-category" required class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all">
-<option>Maqueta Blanca</option>
-<option>Maderas</option>
-<option>Polímeros</option>
-<option>Papeles</option>
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-gray-700 ml-1">Tags</label>
+<div id="mat-tags-selection" class="flex flex-wrap gap-2"></div>
+</div>
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-gray-700 ml-1">Precio</label>
+<div class="flex gap-2">
+<div class="relative flex-1">
+<span id="currency-addon" class="absolute inset-y-0 left-0 flex items-center pl-4 text-gray-500 font-bold">$</span>
+<input id="mat-price" min="0" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 pl-8 pr-4 text-sm font-medium transition-all" placeholder="0.00" type="number">
+</div>
+<select id="mat-price-unit" class="bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all w-36 shrink-0 cursor-pointer">
 </select>
 </div>
-<div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">Precio ($)</label>
-<input id="mat-price" required min="0" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="0.00" type="number">
 </div>
 </div>
-<div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">Medidas</label>
-<input id="mat-size" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="Ej: 50x70 cm" type="text">
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-gray-700 ml-1">Dimensiones</label>
+<div class="grid grid-cols-3 gap-3">
+<div class="relative flex items-center">
+<span class="absolute left-3 text-gray-400 flex items-center"><span class="material-symbols-outlined text-[18px]">line_weight</span></span>
+<input id="mat-thickness" min="0" step="any" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 pl-9 pr-4 text-sm font-medium transition-all" placeholder="Espesor (mm)" type="number">
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-gray-400 flex items-center"><span class="material-symbols-outlined text-[18px]">swap_horiz</span></span>
+<input id="mat-width" min="0" step="any" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 pl-9 pr-4 text-sm font-medium transition-all" placeholder="Ancho (cm)" type="number">
+</div>
+<div class="relative flex items-center">
+<span class="absolute left-3 text-gray-400 flex items-center"><span class="material-symbols-outlined text-[18px]">swap_vert</span></span>
+<input id="mat-length" min="0" step="any" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 pl-9 pr-4 text-sm font-medium transition-all" placeholder="Largo (cm)" type="number">
+</div>
+</div>
 </div>
 <div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">Foto (Subir imagen)</label>
+<label class="text-sm font-bold text-gray-700 ml-1">Imagen</label>
 <input id="mat-img" accept="image/*" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2.5 px-4 text-sm font-medium transition-all file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary-soft file:text-primary hover:file:bg-primary hover:file:text-white cursor-pointer" type="file">
 </div>
-<div class="space-y-2">
-<label class="text-sm font-bold text-gray-700 ml-1">¿Dónde comprarlo? (Maps)</label>
-<input id="mat-loc" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all" placeholder="Pega el link de Google Maps" type="url">
+<div class="space-y-2 md:col-span-2">
+<label class="text-sm font-bold text-gray-700 ml-1">Tienda / Ubicación</label>
+<select id="mat-store-select" class="w-full bg-gray-50 border-gray-100 rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-3 px-4 text-sm font-medium transition-all cursor-pointer">
+<option value="">Sin ubicación</option>
+</select>
 </div>
 </form>
 </div>
@@ -201,21 +181,107 @@ Limpiar filtros
 </div>
 </div>
 </div>
-<!-- BottomNavBar (Mobile Only) -->
-<nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] flex justify-around items-center h-16 px-6 bg-white/90 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-2xl z-50">
-<a class="flex flex-col items-center justify-center text-primary" href="#">
-<span class="material-symbols-outlined">inventory_2</span>
-<span class="text-[10px] font-bold mt-0.5">Materia</span>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-gray-900/20 backdrop-blur-sm">
+<div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+<div class="px-8 py-6 flex justify-between items-center border-b border-gray-50">
+<div>
+<h2 class="text-xl font-bold text-gray-900">Ajustes del Inventario</h2>
+</div>
+<button onclick="closeSettingsModal()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors text-gray-400">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="p-8 overflow-y-auto flex flex-col gap-8">
+<!-- Moneda -->
+<div>
+<h3 class="text-sm font-bold text-gray-700 mb-3">Símbolo de Moneda</h3>
+<div class="flex gap-2">
+<input id="currency-input" class="w-24 bg-gray-50 border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2 px-4 text-sm font-medium transition-all text-center" type="text" value="$">
+<button type="button" onclick="updateCurrency()" class="bg-primary-soft text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-primary hover:text-white transition-all active:scale-95">Guardar</button>
+</div>
+</div>
+<hr class="border-gray-50">
+<!-- Tags -->
+<div>
+<h3 class="text-sm font-bold text-gray-700 mb-3">Gestionar Tags</h3>
+<form onsubmit="addTag(event)" class="flex gap-2 mb-6">
+<input id="new-tag-input" required class="w-full bg-gray-50 border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2 px-4 text-sm font-medium transition-all" placeholder="Nuevo tag..." type="text">
+<button type="submit" class="bg-primary-soft text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-primary hover:text-white transition-all active:scale-95">Añadir</button>
+</form>
+<div id="tags-list" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto"></div>
+</div>
+<hr class="border-gray-50">
+<!-- Units -->
+<div>
+<h3 class="text-sm font-bold text-gray-700 mb-3">Unidades de Medida de Precio</h3>
+<form onsubmit="addUnit(event)" class="flex gap-2 mb-6">
+<input id="new-unit-input" required class="w-full bg-gray-50 border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2 px-4 text-sm font-medium transition-all" placeholder="Nueva unidad..." type="text">
+<button type="submit" class="bg-primary-soft text-primary px-4 py-2 rounded-xl font-bold text-sm hover:bg-primary hover:text-white transition-all active:scale-95">Añadir</button>
+</form>
+<div id="units-list" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto"></div>
+</div>
+<hr class="border-gray-50">
+<!-- Stores -->
+<div>
+<h3 class="text-sm font-bold text-gray-700 mb-3">Tiendas y Ubicaciones</h3>
+<form onsubmit="addStore(event)" class="flex flex-col gap-3 mb-6">
+<input id="new-store-name" required class="w-full bg-gray-50 border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2 px-4 text-sm font-medium transition-all" placeholder="Nombre de la tienda..." type="text">
+<div class="flex gap-2">
+<input id="new-store-url" class="flex-1 bg-gray-50 border-gray-100 rounded-xl focus:ring-4 focus:ring-primary/10 focus:border-primary py-2 px-4 text-sm font-medium transition-all" placeholder="URL o link web (Opcional)" type="url">
+<button type="submit" class="bg-primary-soft text-primary px-5 py-2 rounded-xl font-bold text-sm hover:bg-primary hover:text-white transition-all active:scale-95 shrink-0">Añadir</button>
+</div>
+</form>
+<div id="stores-list" class="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2"></div>
+</div>
+<hr class="border-gray-50">
+<!-- Data Export/Import -->
+<div>
+<h3 class="text-sm font-bold text-gray-700 mb-3">Datos del Inventario</h3>
+<div class="flex gap-3">
+<button type="button" onclick="exportToCSV()" class="flex-1 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:border-primary/30 hover:text-primary transition-all active:scale-95 flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">download</span> Exportar a Excel
+</button>
+<label class="flex-1 bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-xl font-bold text-sm hover:border-primary/30 hover:text-primary transition-all active:scale-95 flex justify-center items-center gap-2 cursor-pointer">
+<span class="material-symbols-outlined text-[18px]">upload</span> Importar de Excel
+<input type="file" id="import-file" accept=".csv" class="hidden" onchange="importFromCSV(event)">
+</label>
+</div>
+<p class="text-xs text-gray-400 mt-2 text-center">Los datos se manejarán usando formato de hoja de cálculo .CSV</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- View Material Modal -->
+<div id="view-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-gray-900/20 backdrop-blur-sm">
+<div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+<div id="view-img-container" class="relative w-full h-64 bg-gray-50 shrink-0">
+<!-- Image injected here via JS -->
+</div>
+<div class="p-8 overflow-y-auto flex-1">
+<div id="view-tags" class="flex flex-wrap gap-2 mb-4"></div>
+<p id="view-brand" class="text-xs font-bold text-primary/60 uppercase tracking-widest mb-1"></p>
+<h2 id="view-title" class="text-2xl font-bold text-gray-900 leading-tight mb-6"></h2>
+<div class="space-y-4">
+<div class="flex items-center justify-between py-3 border-b border-gray-50">
+<span class="text-sm font-semibold text-gray-500">Precio</span>
+<span id="view-price" class="text-lg font-bold text-gray-900"></span>
+</div>
+<div class="py-3 border-b border-gray-50">
+<span class="text-sm font-semibold text-gray-500 block mb-3">Dimensiones</span>
+<div id="view-dimensions" class="flex flex-wrap gap-3"></div>
+</div>
+<div class="pt-3">
+<a id="view-loc" href="#" target="_blank" class="hidden w-full items-center justify-center gap-2 bg-gray-50 text-gray-700 font-bold px-6 py-3 rounded-xl hover:bg-gray-100 transition-colors">
+<span class="material-symbols-outlined text-lg">storefront</span> Ver ubicación o compra
 </a>
-<a class="flex flex-col items-center justify-center text-gray-400 hover:text-primary transition-colors" href="#">
-<span class="material-symbols-outlined">favorite</span>
-<span class="text-[10px] font-bold mt-0.5">Favoritos</span>
-</a>
-<a class="flex flex-col items-center justify-center text-gray-400 hover:text-primary transition-colors" href="#">
-<span class="material-symbols-outlined">account_circle</span>
-<span class="text-[10px] font-bold mt-0.5">Perfil</span>
-</a>
-</nav>
+</div>
+</div>
+</div>
+</div>
+</div>
 
 <script>
     const modal = document.getElementById('material-modal');
@@ -260,42 +326,444 @@ Limpiar filtros
         }
     });
 
+    // --- Gestión de Tags y Unidades (Ajustes) ---
+    let tags = ['Maqueta Blanca', 'Maderas', 'Polímeros', 'Papeles']; // Tags iniciales por defecto
+    let units = ['u', 'm', 'm²', 'ml', 'L', 'kg']; // Unidades iniciales por defecto
+    let currencySymbol = '$'; // Moneda inicial
+    let stores = []; // [{name: 'Librería Nacional', url: 'https...'}]
+
+    function loadSettings() {
+        const savedTags = localStorage.getItem('inventoryTags');
+        if (savedTags) try { tags = JSON.parse(savedTags); } catch(e) {}
+        
+        const savedUnits = localStorage.getItem('inventoryUnits');
+        if (savedUnits) try { units = JSON.parse(savedUnits); } catch(e) {}
+        
+        const savedCurrency = localStorage.getItem('inventoryCurrency');
+        if (savedCurrency) currencySymbol = savedCurrency;
+        
+        const savedStores = localStorage.getItem('inventoryStores');
+        if (savedStores) try { stores = JSON.parse(savedStores); } catch(e) {}
+        
+        renderSettings();
+    }
+
+    function saveSettings() {
+        localStorage.setItem('inventoryTags', JSON.stringify(tags));
+        localStorage.setItem('inventoryUnits', JSON.stringify(units));
+        localStorage.setItem('inventoryCurrency', currencySymbol);
+        localStorage.setItem('inventoryStores', JSON.stringify(stores));
+    }
+
+    function renderSettings() {
+        const searchSelect = document.getElementById('search-category');
+        const tagsSelection = document.getElementById('mat-tags-selection');
+        const tagsList = document.getElementById('tags-list');
+        const unitsSelect = document.getElementById('mat-price-unit');
+        const unitsList = document.getElementById('units-list');
+        const storeSelect = document.getElementById('mat-store-select');
+        const storesList = document.getElementById('stores-list');
+        
+        const currencyInput = document.getElementById('currency-input');
+        const currencyAddon = document.getElementById('currency-addon');
+        if (currencyInput) currencyInput.value = currencySymbol;
+        if (currencyAddon) currencyAddon.textContent = currencySymbol;
+        
+        if (searchSelect) {
+            const currentVal = searchSelect.value;
+            searchSelect.innerHTML = '<option value="">Todas las categorías</option>';
+            tags.forEach(tag => searchSelect.innerHTML += `<option value="${tag.toLowerCase()}">${tag}</option>`);
+            searchSelect.value = currentVal;
+        }
+        
+        if (tagsSelection) {
+            tagsSelection.innerHTML = '';
+            tags.forEach(tag => {
+                tagsSelection.innerHTML += `<button type="button" data-selected="false" onclick="toggleFormTag(this)" class="px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30">${tag}</button>`;
+            });
+        }
+        
+        if (unitsSelect) {
+            const currentUnit = unitsSelect.value;
+            unitsSelect.innerHTML = '';
+            units.forEach(u => unitsSelect.innerHTML += `<option value="${u}">${u}</option>`);
+            // Mantener el valor previo si existe
+            if (units.includes(currentUnit)) {
+                unitsSelect.value = currentUnit;
+            }
+        }
+        
+        if (storeSelect) {
+            const currentStore = storeSelect.value;
+            storeSelect.innerHTML = '<option value="">Sin ubicación</option>';
+            stores.forEach((s, i) => storeSelect.innerHTML += `<option value="${i}">${s.name}</option>`);
+            if (currentStore && currentStore < stores.length) storeSelect.value = currentStore;
+        }
+        
+        if (storesList) {
+            storesList.innerHTML = '';
+            stores.forEach((s, index) => {
+                storesList.innerHTML += `
+                    <div class="bg-gray-50 border border-gray-100 rounded-xl p-3 flex justify-between items-center group">
+                        <div class="flex flex-col overflow-hidden">
+                            <span class="text-sm font-bold text-gray-700 truncate">${s.name}</span>
+                            ${s.url ? `<a href="${s.url}" target="_blank" class="text-xs text-primary hover:underline truncate">${s.url}</a>` : `<span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Sin enlace</span>`}
+                        </div>
+                        <div class="flex gap-1 shrink-0 ml-3">
+                            <button onclick="editStore(${index})" type="button" class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-gray-500 hover:text-primary flex items-center justify-center transition-colors shadow-sm active:scale-95" title="Editar">
+                                <span class="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            <button onclick="removeStore(${index})" type="button" class="w-8 h-8 rounded-lg bg-white border border-gray-100 text-red-400 hover:text-red-500 hover:border-red-100 flex items-center justify-center transition-colors shadow-sm active:scale-95" title="Eliminar">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        if (tagsList) {
+            tagsList.innerHTML = '';
+            tags.forEach((tag, index) => {
+                tagsList.innerHTML += `
+                    <span class="bg-gray-100 text-gray-600 pl-3 pr-1 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+                        ${tag}
+                        <button onclick="editTag(${index})" type="button" class="hover:text-primary flex items-center justify-center transition-colors ml-1" title="Editar">
+                            <span class="material-symbols-outlined text-[14px]">edit</span>
+                        </button>
+                        <button onclick="removeTag(${index})" type="button" class="hover:text-red-500 flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                    </span>
+                `;
+            });
+        }
+        
+        if (unitsList) {
+            unitsList.innerHTML = '';
+            units.forEach((u, index) => {
+                unitsList.innerHTML += `
+                    <span class="bg-gray-100 text-gray-600 pl-3 pr-1 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+                        ${u}
+                        <button onclick="editUnit(${index})" type="button" class="hover:text-primary flex items-center justify-center transition-colors ml-1" title="Editar">
+                            <span class="material-symbols-outlined text-[14px]">edit</span>
+                        </button>
+                        <button onclick="removeUnit(${index})" type="button" class="hover:text-red-500 flex items-center justify-center transition-colors">
+                            <span class="material-symbols-outlined text-[14px]">close</span>
+                        </button>
+                    </span>
+                `;
+            });
+        }
+    }
+
+    function toggleFormTag(btn) {
+        const isSelected = btn.getAttribute('data-selected') === 'true';
+        if (isSelected) {
+            btn.setAttribute('data-selected', 'false');
+            btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
+        } else {
+            btn.setAttribute('data-selected', 'true');
+            btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-primary bg-primary-soft text-primary';
+        }
+    }
+
+    function updateCurrency() {
+        const val = document.getElementById('currency-input').value.trim();
+        if (val) {
+            currencySymbol = val;
+            saveSettings();
+            renderSettings();
+            rebuildAllCards();
+        }
+    }
+
+    function editTag(index) {
+        const oldName = tags[index];
+        const newName = prompt("Editar tag:", oldName);
+        if (newName && newName.trim() !== "" && newName.trim() !== oldName) {
+            const cleanNewName = newName.trim();
+            tags[index] = cleanNewName;
+            document.querySelectorAll('#inventory-grid article').forEach(card => {
+                let cardTags = (card.getAttribute('data-category') || '').split(',').map(s=>s.trim()).filter(Boolean);
+                if (cardTags.includes(oldName)) {
+                    cardTags = cardTags.map(t => t === oldName ? cleanNewName : t);
+                    card.setAttribute('data-category', cardTags.join(', '));
+                }
+            });
+            saveSettings();
+            renderSettings();
+            rebuildAllCards();
+        }
+    }
+
+    function editUnit(index) {
+        const oldUnit = units[index];
+        const newUnit = prompt("Editar unidad:", oldUnit);
+        if (newUnit && newUnit.trim() !== "" && newUnit.trim() !== oldUnit) {
+            const cleanNewUnit = newUnit.trim();
+            units[index] = cleanNewUnit;
+            document.querySelectorAll('#inventory-grid article').forEach(card => {
+                if (card.getAttribute('data-unit') === oldUnit) {
+                    card.setAttribute('data-unit', cleanNewUnit);
+                }
+            });
+            saveSettings();
+            renderSettings();
+            rebuildAllCards();
+        }
+    }
+
+    function addStore(e) {
+        e.preventDefault();
+        const nameInput = document.getElementById('new-store-name');
+        const urlInput = document.getElementById('new-store-url');
+        const name = nameInput.value.trim();
+        const url = urlInput.value.trim();
+        if (name) {
+            stores.push({name, url});
+            saveSettings();
+            renderSettings();
+            nameInput.value = '';
+            urlInput.value = '';
+        }
+    }
+
+    function editStore(index) {
+        const oldStore = stores[index];
+        const newName = prompt("Editar nombre de la tienda:", oldStore.name);
+        if (newName === null) return;
+        const newUrl = prompt("Editar enlace o URL (deja en blanco si no tiene):", oldStore.url);
+        if (newUrl === null) return;
+        if (newName.trim() !== "") {
+            const cleanName = newName.trim();
+            const cleanUrl = newUrl.trim();
+            stores[index] = {name: cleanName, url: cleanUrl};
+            saveSettings();
+            renderSettings();
+            rebuildAllCards();
+        }
+    }
+
+    function removeStore(index) {
+        if(confirm('¿Seguro que quieres eliminar esta tienda?')) {
+            stores.splice(index, 1);
+            saveSettings();
+            renderSettings();
+        }
+    }
+
+    function addTag(e) {
+        e.preventDefault();
+        const input = document.getElementById('new-tag-input');
+        const val = input.value.trim();
+        if (val && !tags.includes(val)) {
+            tags.push(val);
+            saveSettings();
+            renderSettings();
+            input.value = '';
+        }
+    }
+
+    function removeTag(index) {
+        if(confirm('¿Seguro que quieres eliminar este tag?')) {
+            tags.splice(index, 1);
+            saveSettings();
+            renderSettings();
+        }
+    }
+
+    function addUnit(e) {
+        e.preventDefault();
+        const input = document.getElementById('new-unit-input');
+        const val = input.value.trim();
+        if (val && !units.includes(val)) {
+            units.push(val);
+            saveSettings();
+            renderSettings();
+            input.value = '';
+        }
+    }
+
+    function removeUnit(index) {
+        if(confirm('¿Seguro que quieres eliminar esta unidad?')) {
+            units.splice(index, 1);
+            saveSettings();
+            renderSettings();
+        }
+    }
+
+    function openSettingsModal() {
+        document.getElementById('settings-modal').classList.remove('hidden');
+    }
+
+    function closeSettingsModal() {
+        document.getElementById('settings-modal').classList.add('hidden');
+    }
+
     function openModal(mode, btn = null) {
         currentMode = mode;
         modal.classList.remove('hidden');
         
         if (mode === 'add') {
-            document.getElementById('modal-title').textContent = 'Añadir material';
-            document.getElementById('modal-desc').textContent = 'Completa los datos para tu nuevo recurso.';
+            document.getElementById('modal-title').textContent = 'Nuevo Material';
+            document.getElementById('modal-desc').textContent = 'Ingresa la información del material.';
             form.reset();
+            // Deseleccionar tags
+            document.querySelectorAll('#mat-tags-selection button').forEach(btn => {
+                btn.setAttribute('data-selected', 'false');
+                btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
+            });
             currentImageBase64 = ''; // Limpiamos si hay una imagen previa almacenada
         } else if (mode === 'edit') {
-            document.getElementById('modal-title').textContent = 'Editar material';
-            document.getElementById('modal-desc').textContent = 'Modifica los datos de este recurso.';
+            document.getElementById('modal-title').textContent = 'Editar Material';
+            document.getElementById('modal-desc').textContent = 'Modifica la información del material.';
             currentEditingCard = btn.closest('article');
             
             // Extraer información de la tarjeta
-            const title = currentEditingCard.querySelector('h3').textContent;
-            const brand = currentEditingCard.querySelector('p.uppercase').textContent;
-            const category = currentEditingCard.querySelector('.absolute span').textContent;
-            const priceText = currentEditingCard.querySelector('.text-xl.font-bold').textContent;
-            const price = priceText.replace(/[^0-9]/g, '');
-            const sizeSpans = Array.from(currentEditingCard.querySelectorAll('.mb-4 + .flex span.text-xs'));
-            const size = sizeSpans.map(s => s.textContent).join(' - ');
-            const imgSrc = currentEditingCard.querySelector('img').src;
-            const locBtn = currentEditingCard.querySelector('a[title="Ver Ubicación"]');
+            const title = currentEditingCard.getAttribute('data-name') || currentEditingCard.querySelector('h3').textContent;
+            const brandElem = currentEditingCard.querySelector('p.uppercase');
+            const brand = currentEditingCard.getAttribute('data-brand') || (brandElem ? brandElem.textContent : '');
+            
+            // Obtener el tag de manera compatible con tarjetas antiguas o nuevas
+            let categoryStr = currentEditingCard.getAttribute('data-category') || '';
+            const cardTags = categoryStr.split(',').map(s => s.trim()).filter(Boolean);
+
+            const priceElem = currentEditingCard.querySelector('.text-xl.font-bold, .text-2xl.font-extrabold');
+            const priceText = priceElem ? priceElem.textContent : '';
+            const price = currentEditingCard.getAttribute('data-price') || priceText.replace(/[^0-9]/g, '');
+            const unit = currentEditingCard.getAttribute('data-unit') || 'u';
+            
+            let t = currentEditingCard.getAttribute('data-t') || '';
+            let w = currentEditingCard.getAttribute('data-w') || '';
+            let l = currentEditingCard.getAttribute('data-l') || '';
+
+            // Compatibilidad tarjetas antiguas
+            if (!t && !w && !l) {
+                const sizeSpans = Array.from(currentEditingCard.querySelectorAll('.mb-4 + .flex span.text-xs'));
+                const sizeMatch = sizeSpans.map(s => s.textContent).join(' - ').match(/([\d.]+)mm\s*(?:x|×)\s*([\d.]+)cm\s*(?:x|×)\s*([\d.]+)cm/);
+                if (sizeMatch) { t = sizeMatch[1]; w = sizeMatch[2]; l = sizeMatch[3]; }
+            }
+
+            const imgElem = currentEditingCard.querySelector('img');
+            const imgSrc = imgElem ? imgElem.src : '';
+            
+            let locVal = currentEditingCard.getAttribute('data-loc');
+            if (locVal === null) locVal = '';
+            let storeVal = currentEditingCard.getAttribute('data-store') || '';
             
             // Llenar el formulario con los datos extraídos
             document.getElementById('mat-name').value = title;
             document.getElementById('mat-brand').value = brand;
-            Array.from(document.getElementById('mat-category').options).forEach(opt => {
-                if (opt.text.toLowerCase() === category.toLowerCase()) opt.selected = true;
+            
+            // Tags Selection
+            document.querySelectorAll('#mat-tags-selection button').forEach(btn => {
+                const isSelected = cardTags.includes(btn.innerText.trim());
+                if (isSelected) {
+                    btn.setAttribute('data-selected', 'true');
+                    btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-primary bg-primary-soft text-primary';
+                } else {
+                    btn.setAttribute('data-selected', 'false');
+                    btn.className = 'px-4 py-2 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 border-gray-100 bg-gray-50 text-gray-600 hover:border-primary/30';
+                }
             });
+            
             document.getElementById('mat-price').value = price;
-            document.getElementById('mat-size').value = size;
-            document.getElementById('mat-loc').value = locBtn ? locBtn.href : '';
+            document.getElementById('mat-price-unit').value = unit;
+            document.getElementById('mat-thickness').value = t;
+            document.getElementById('mat-width').value = w;
+            document.getElementById('mat-length').value = l;
+            
+            const storeSelect = document.getElementById('mat-store-select');
+            storeSelect.value = '';
+            const sIndex = stores.findIndex(s => s.name === storeVal);
+            if (sIndex !== -1) storeSelect.value = sIndex;
+            
             currentImageBase64 = imgSrc; // Mantenemos la imagen actual de la tarjeta si el usuario no sube una nueva
         }
+    }
+
+    function openViewModal(card) {
+        const name = card.getAttribute('data-name');
+        const brand = card.getAttribute('data-brand');
+        const tagsStr = card.getAttribute('data-category');
+        const price = card.getAttribute('data-price');
+        const unit = card.getAttribute('data-unit');
+        const t = card.getAttribute('data-t');
+        const w = card.getAttribute('data-w');
+        const l = card.getAttribute('data-l');
+        const loc = card.getAttribute('data-loc');
+        const store = card.getAttribute('data-store');
+        
+        const imgElem = card.querySelector('img');
+        const imgSrc = imgElem ? imgElem.src : '';
+
+        document.getElementById('view-title').textContent = name || 'Sin nombre';
+        document.getElementById('view-brand').textContent = brand || '';
+        document.getElementById('view-brand').style.display = brand ? 'block' : 'none';
+        
+        const imgContainer = document.getElementById('view-img-container');
+        if (imgSrc) {
+            imgContainer.innerHTML = `
+                <img src="${imgSrc}" class="w-full h-full object-cover">
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            `;
+        } else {
+            imgContainer.innerHTML = `
+                <div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300">
+                    <span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span>
+                </div>
+                <button onclick="closeViewModal()" class="absolute top-4 right-4 w-10 h-10 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary transition-colors shadow-sm">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            `;
+        }
+
+        const tagsContainer = document.getElementById('view-tags');
+        tagsContainer.innerHTML = '';
+        if (tagsStr) {
+            const tagArr = tagsStr.split(',').map(s=>s.trim()).filter(Boolean);
+            tagArr.forEach(tag => {
+                tagsContainer.innerHTML += `<span class="bg-primary-soft text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">${tag}</span>`;
+            });
+        }
+
+        let formattedPrice = '-';
+        if (price) {
+            formattedPrice = currencySymbol + Number(price).toLocaleString('es-CL');
+            if (unit) formattedPrice += ` / ${unit}`;
+        }
+        document.getElementById('view-price').textContent = formattedPrice;
+
+        const dimContainer = document.getElementById('view-dimensions');
+        dimContainer.innerHTML = '';
+        if (t) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Espesor"><span class="material-symbols-outlined text-[16px] text-gray-400">line_weight</span><span class="text-sm font-semibold text-gray-700">${t}mm</span></div>`;
+        if (w) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Ancho"><span class="material-symbols-outlined text-[16px] text-gray-400">swap_horiz</span><span class="text-sm font-semibold text-gray-700">${w}cm</span></div>`;
+        if (l) dimContainer.innerHTML += `<div class="flex items-center gap-1.5 bg-gray-50 px-3 py-2 rounded-xl" title="Largo"><span class="material-symbols-outlined text-[16px] text-gray-400">swap_vert</span><span class="text-sm font-semibold text-gray-700">${l}cm</span></div>`;
+        if (!t && !w && !l) dimContainer.innerHTML = '<span class="text-sm text-gray-400">Sin dimensiones registradas</span>';
+
+        const locBtn = document.getElementById('view-loc');
+        if (loc && loc !== '#') { 
+            locBtn.href = loc; 
+            locBtn.target = "_blank";
+            locBtn.style.display = 'flex'; 
+            locBtn.innerHTML = `<span class="material-symbols-outlined text-lg">storefront</span> ${store ? 'Comprar en ' + store : 'Ver ubicación o compra'}`;
+        } else if (store) {
+            locBtn.removeAttribute('href');
+            locBtn.removeAttribute('target');
+            locBtn.style.display = 'flex'; 
+            locBtn.innerHTML = `<span class="material-symbols-outlined text-lg">storefront</span> ${store}`;
+        } else { 
+            locBtn.style.display = 'none'; 
+        }
+
+        document.getElementById('view-modal').classList.remove('hidden');
+    }
+
+    function closeViewModal() {
+        document.getElementById('view-modal').classList.add('hidden');
     }
 
     function closeModal() {
@@ -308,75 +776,118 @@ Limpiar filtros
     function saveMaterial(event) {
         event.preventDefault(); // Previene que la página se recargue
         
-        const name = document.getElementById('mat-name').value;
-        const brand = document.getElementById('mat-brand').value || 'Sin marca';
-        const categorySelect = document.getElementById('mat-category');
-        const category = categorySelect.options[categorySelect.selectedIndex].text;
-        const price = document.getElementById('mat-price').value;
-        const size = document.getElementById('mat-size').value || 'N/A';
-        const imgSrc = currentImageBase64 || 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?auto=format&fit=crop&q=80&w=600';
-        const loc = document.getElementById('mat-loc').value || '#';
+        const name = document.getElementById('mat-name').value || 'Sin nombre';
+        const brand = document.getElementById('mat-brand').value || '';
         
-        const formattedPrice = '$' + Number(price).toLocaleString('es-CL');
+        const selectedTagBtns = document.querySelectorAll('#mat-tags-selection button[data-selected="true"]');
+        const selectedTags = Array.from(selectedTagBtns).map(btn => btn.innerText.trim());
+        const tagsData = selectedTags.join(', ');
+
+        const price = document.getElementById('mat-price').value;
+        const unit = document.getElementById('mat-price-unit').value;
+        
+        const t = document.getElementById('mat-thickness').value;
+        const w = document.getElementById('mat-width').value;
+        const l = document.getElementById('mat-length').value;
+        
+        const sizeParts = [];
+        if(t) sizeParts.push(`${t}mm`);
+        if(w) sizeParts.push(`${w}cm`);
+        if(l) sizeParts.push(`${l}cm`);
+        const sizeText = sizeParts.join(' × ');
+        const sizeHtml = sizeText ? `<div class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-lg"><span class="text-xs font-semibold text-gray-600">${sizeText}</span></div>` : '';
+
+        const imgSrc = currentImageBase64 || '';
+        
+        const storeIndex = document.getElementById('mat-store-select').value;
+        let store = '';
+        let loc = '';
+        if (storeIndex !== '') {
+            store = stores[storeIndex].name;
+            loc = stores[storeIndex].url;
+        }
+        
+        let priceValue = '-';
+        let unitHtml = '';
+        if (price) {
+            priceValue = currencySymbol + Number(price).toLocaleString('es-CL');
+            if (unit) unitHtml = `<span class="text-sm font-semibold text-gray-500">/ ${unit}</span>`;
+        }
+        
+        const imageHtml = imgSrc 
+            ? `<img alt="${name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${imgSrc}">`
+            : `<div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300"><span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span></div>`;
+
+        let locHtml = ``;
+        if (store) {
+            if (loc && loc !== '#') {
+                locHtml = `
+                <a href="${loc}" target="_blank" onclick="event.stopPropagation()" class="w-fit flex items-center gap-1.5 bg-primary-soft text-primary px-3 py-1.5 rounded-xl hover:bg-primary hover:text-white transition-colors max-w-[200px] shadow-sm mb-3" title="Comprar en ${store}">
+                    <span class="material-symbols-outlined text-[16px]">storefront</span>
+                    <span class="text-xs font-bold truncate">${store}</span>
+                </a>`;
+            } else {
+                locHtml = `
+                <span class="w-fit flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-xl max-w-[200px] mb-3" title="${store}">
+                    <span class="material-symbols-outlined text-[16px]">storefront</span>
+                    <span class="text-xs font-bold truncate">${store}</span>
+                </span>`;
+            }
+        }
+
+        const cardContent = `
+            <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
+                ${imageHtml}
+                <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                    <button type="button" onclick="openModal('edit', this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors active:scale-95" title="Editar">
+                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                    </button>
+                    <button type="button" onclick="deleteMaterial(this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors active:scale-95" title="Eliminar">
+                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                    </button>
+                </div>
+            </div>
+            <div class="p-5 flex flex-col flex-1 bg-white">
+                <h3 class="text-xl font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1">${name}</h3>
+                ${sizeText ? `<p class="text-sm font-medium text-gray-500 mb-4">${sizeText}</p>` : '<div class="mb-4"></div>'}
+                <div class="mt-auto flex flex-col pt-4 border-t border-gray-50">
+                    ${locHtml}
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Precio</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
+                            ${unitHtml}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        let targetCard = currentEditingCard;
 
         if (currentMode === 'add') {
             const grid = document.getElementById('inventory-grid');
-            const newCard = document.createElement('article');
-            newCard.className = 'group bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5';
-            
-            newCard.innerHTML = `
-                <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
-                    <img alt="${name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${imgSrc}">
-                    <div class="absolute top-4 left-4">
-                        <span class="bg-white/90 backdrop-blur-md text-primary text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-widest shadow-sm">${category}</span>
-                    </div>
-                    <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <button type="button" onclick="openModal('edit', this)" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors" title="Editar">
-                            <span class="material-symbols-outlined text-[18px]">edit</span>
-                        </button>
-                        <button type="button" onclick="deleteMaterial(this)" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors" title="Eliminar">
-                            <span class="material-symbols-outlined text-[18px]">delete</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="p-6">
-                    <div class="mb-4">
-                        <p class="text-[11px] font-bold text-primary/60 uppercase tracking-widest mb-1">${brand}</p>
-                        <h3 class="text-lg font-bold text-gray-900 leading-tight">${name}</h3>
-                    </div>
-                    <div class="flex items-center gap-2 mb-4">
-                        <div class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-lg">
-                            <span class="text-xs font-semibold text-gray-600">${size}</span>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-50">
-                        <span class="text-xl font-bold text-gray-900">${formattedPrice}</span>
-                        <a class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 hover:text-primary hover:bg-primary-soft transition-colors" href="${loc}" target="_blank" title="Ver Ubicación">
-                            <span class="material-symbols-outlined text-xl">location_on</span>
-                        </a>
-                    </div>
-                </div>
-            `;
-            grid.appendChild(newCard);
-            
-        } else if (currentMode === 'edit' && currentEditingCard) {
-            currentEditingCard.querySelector('h3').textContent = name;
-            currentEditingCard.querySelector('p.uppercase').textContent = brand;
-            currentEditingCard.querySelector('.absolute span').textContent = category;
-            currentEditingCard.querySelector('.text-xl.font-bold').textContent = formattedPrice;
-            currentEditingCard.querySelector('img').src = imgSrc;
-            const locBtn = currentEditingCard.querySelector('a[title="Ver Ubicación"]');
-            if(locBtn) locBtn.href = loc;
-            
-            const sizeContainer = currentEditingCard.querySelector('.mb-4').nextElementSibling;
-            sizeContainer.innerHTML = `
-                <div class="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1 rounded-lg">
-                    <span class="text-xs font-semibold text-gray-600">${size}</span>
-                </div>
-            `;
+            targetCard = document.createElement('article');
+            targetCard.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
+            grid.appendChild(targetCard);
         }
         
-        checkEmptyState();
+        // Asignamos Data Attributes ocultos para preservar la información intacta al editar
+        targetCard.setAttribute('data-category', tagsData);
+        targetCard.setAttribute('data-name', name);
+        targetCard.setAttribute('data-brand', brand);
+        targetCard.setAttribute('data-price', price);
+        targetCard.setAttribute('data-unit', unit);
+        targetCard.setAttribute('data-t', t);
+        targetCard.setAttribute('data-w', w);
+        targetCard.setAttribute('data-l', l);
+        targetCard.setAttribute('data-loc', loc !== '#' ? loc : '');
+        targetCard.setAttribute('data-store', store);
+        
+        // Inyectamos el contenido visual final
+        targetCard.innerHTML = cardContent;
+        
+        filterMaterials();
         saveToLocalStorage();
         closeModal();
     }
@@ -384,17 +895,19 @@ Limpiar filtros
     function deleteMaterial(btn) {
         if (confirm('¿Estás seguro de que deseas eliminar este material?')) {
             btn.closest('article').remove();
-            checkEmptyState();
+            filterMaterials();
             saveToLocalStorage();
         }
     }
 
-    function checkEmptyState() {
+    function checkEmptyState(visibleCount = null) {
         const grid = document.getElementById('inventory-grid');
         const emptyState = document.getElementById('empty-state');
         
-        // Verifica si ya no quedan tarjetas dentro de la grilla
-        if (grid.querySelectorAll('article').length === 0) {
+        const articles = grid.querySelectorAll('article');
+        const count = visibleCount !== null ? visibleCount : Array.from(articles).filter(a => a.style.display !== 'none').length;
+        
+        if (count === 0) {
             grid.classList.add('hidden');
             emptyState.classList.remove('hidden');
             emptyState.classList.add('flex');
@@ -403,6 +916,276 @@ Limpiar filtros
             emptyState.classList.add('hidden');
             emptyState.classList.remove('flex');
         }
+    }
+
+    // Reconstruye todas las tarjetas (ej: al cambiar moneda o editar un tag/unidad)
+    function rebuildAllCards() {
+        const articles = document.querySelectorAll('#inventory-grid article');
+        articles.forEach(card => {
+            const name = card.getAttribute('data-name');
+            const brand = card.getAttribute('data-brand');
+            const price = card.getAttribute('data-price');
+            const unit = card.getAttribute('data-unit');
+            const t = card.getAttribute('data-t');
+            const w = card.getAttribute('data-w');
+            const l = card.getAttribute('data-l');
+            const loc = card.getAttribute('data-loc');
+            const store = card.getAttribute('data-store');
+            
+            // Auto-update location URL if store matches one in settings (keeps URLs synced if edited in Settings)
+            let currentLoc = loc;
+            const sIndex = stores.findIndex(s => s.name === store);
+            if (sIndex !== -1) {
+                currentLoc = stores[sIndex].url || '';
+                card.setAttribute('data-loc', currentLoc !== '#' ? currentLoc : '');
+            }
+
+            const imgElem = card.querySelector('img');
+            const imgSrc = imgElem ? imgElem.src : '';
+
+            const sizeParts = [];
+            if(t) sizeParts.push(`${t}mm`);
+            if(w) sizeParts.push(`${w}cm`);
+            if(l) sizeParts.push(`${l}cm`);
+            const sizeText = sizeParts.join(' × ');
+
+            let priceValue = '-';
+            let unitHtml = '';
+            if (price) {
+                priceValue = currencySymbol + Number(price).toLocaleString('es-CL');
+                if (unit) unitHtml = `<span class="text-sm font-semibold text-gray-500">/ ${unit}</span>`;
+            }
+            
+            const imageHtml = imgSrc 
+                ? `<img alt="${name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="${imgSrc}">`
+                : `<div class="w-full h-full bg-gray-100 flex flex-col items-center justify-center text-gray-300"><span class="material-symbols-outlined text-4xl mb-1">image</span><span class="text-[10px] font-bold">SIN IMAGEN</span></div>`;
+
+            let locHtml = ``;
+            if (store) {
+                if (currentLoc && currentLoc !== '#') {
+                    locHtml = `
+                    <a href="${currentLoc}" target="_blank" onclick="event.stopPropagation()" class="w-fit flex items-center gap-1.5 bg-primary-soft text-primary px-3 py-1.5 rounded-xl hover:bg-primary hover:text-white transition-colors max-w-[200px] shadow-sm mb-3" title="Comprar en ${store}">
+                        <span class="material-symbols-outlined text-[16px]">storefront</span>
+                        <span class="text-xs font-bold truncate">${store}</span>
+                    </a>`;
+                } else {
+                    locHtml = `
+                    <span class="w-fit flex items-center gap-1.5 bg-gray-50 text-gray-600 px-3 py-1.5 rounded-xl max-w-[200px] mb-3" title="${store}">
+                        <span class="material-symbols-outlined text-[16px]">storefront</span>
+                        <span class="text-xs font-bold truncate">${store}</span>
+                    </span>`;
+                }
+            }
+
+            card.innerHTML = `
+                <div class="relative w-full aspect-square overflow-hidden bg-gray-50">
+                    ${imageHtml}
+                    <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+                        <button type="button" onclick="openModal('edit', this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-gray-700 hover:text-primary hover:bg-white shadow-sm transition-colors active:scale-95" title="Editar">
+                            <span class="material-symbols-outlined text-[18px]">edit</span>
+                        </button>
+                        <button type="button" onclick="deleteMaterial(this); event.stopPropagation();" class="w-8 h-8 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center text-red-500 hover:text-red-600 hover:bg-white shadow-sm transition-colors active:scale-95" title="Eliminar">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="p-5 flex flex-col flex-1 bg-white">
+                    <h3 class="text-xl font-extrabold text-gray-900 leading-tight line-clamp-2 mb-1">${name}</h3>
+                    ${sizeText ? `<p class="text-sm font-medium text-gray-500 mb-4">${sizeText}</p>` : '<div class="mb-4"></div>'}
+                    <div class="mt-auto flex flex-col pt-4 border-t border-gray-50">
+                        ${locHtml}
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Precio</span>
+                            <div class="flex items-baseline gap-1">
+                                <span class="text-2xl font-extrabold text-gray-900 leading-none">${priceValue}</span>
+                                ${unitHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        saveToLocalStorage();
+    }
+
+    // --- Filtros de Búsqueda ---
+    function filterMaterials() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const category = document.getElementById('search-category').value.toLowerCase();
+        const articles = document.querySelectorAll('#inventory-grid article');
+        
+        let visibleCount = 0;
+        articles.forEach(article => {
+            const title = (article.getAttribute('data-name') || article.querySelector('h3')?.textContent || '').toLowerCase();
+            const brand = (article.getAttribute('data-brand') || article.querySelector('p.uppercase')?.textContent || '').toLowerCase();
+            const itemCategory = (article.getAttribute('data-category') || '').toLowerCase();
+            
+            // El material se muestra si coincide parte del título o marca y si la categoría seleccionada encaja.
+            const matchesQuery = title.includes(query) || brand.includes(query);
+            const matchesCategory = category === '' || itemCategory.split(',').map(s=>s.trim()).includes(category);
+            
+            if (matchesQuery && matchesCategory) {
+                article.style.display = '';
+                visibleCount++;
+            } else {
+                article.style.display = 'none';
+            }
+        });
+        
+        checkEmptyState(visibleCount); // Comprobamos si nos quedamos sin resultados tras filtrar
+    }
+
+    function clearFilters() {
+        const searchInput = document.getElementById('search-input');
+        const searchCategory = document.getElementById('search-category');
+        if (searchInput) searchInput.value = '';
+        if (searchCategory) searchCategory.value = '';
+        filterMaterials();
+    }
+
+    // --- Exportar / Importar Excel (CSV) ---
+    function parseCSVRow(str) {
+        const result = [];
+        let insideQuote = false;
+        let value = '';
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            if (char === '"') {
+                if (insideQuote && str[i+1] === '"') {
+                    value += '"';
+                    i++;
+                } else {
+                    insideQuote = !insideQuote;
+                }
+            } else if (char === ';' && !insideQuote) {
+                result.push(value);
+                value = '';
+            } else {
+                value += char;
+            }
+        }
+        result.push(value);
+        return result;
+    }
+
+    function exportToCSV() {
+        const articles = document.querySelectorAll('#inventory-grid article');
+        let csvContent = "Nombre;Marca;Tags;Precio;Unidad;Espesor(mm);Ancho(cm);Largo(cm);Tienda;Link_Tienda\n";
+        
+        articles.forEach(card => {
+            const rowData = [
+                card.getAttribute('data-name') || '',
+                card.getAttribute('data-brand') || '',
+                card.getAttribute('data-category') || '',
+                card.getAttribute('data-price') || '',
+                card.getAttribute('data-unit') || '',
+                card.getAttribute('data-t') || '',
+                card.getAttribute('data-w') || '',
+                card.getAttribute('data-l') || '',
+                card.getAttribute('data-store') || '',
+                card.getAttribute('data-loc') || ''
+            ];
+            
+            const row = rowData.map(field => `"${String(field).replace(/"/g, '""')}"`).join(";");
+            csvContent += row + "\n";
+        });
+        
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Mi_Inventario_Materiales.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function importFromCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const rows = text.split('\n').map(row => row.trim()).filter(row => row);
+            if (rows.length < 2) return alert('El archivo está vacío o no es válido.');
+            
+            const grid = document.getElementById('inventory-grid');
+            let importedCount = 0;
+            let skippedCount = 0;
+            
+            // Recolectar nombres existentes (en minúsculas) para evitar duplicados
+            const existingNames = new Set(Array.from(grid.querySelectorAll('article')).map(card => (card.getAttribute('data-name') || '').toLowerCase()));
+            
+            for (let i = 1; i < rows.length; i++) {
+                const cols = parseCSVRow(rows[i]);
+                if (cols.length < 1) continue;
+                
+                const name = cols[0]?.trim();
+                if (!name) continue; // Si no hay Nombre, saltamos la fila
+                
+                const lowerName = name.toLowerCase();
+                if (existingNames.has(lowerName)) {
+                    skippedCount++;
+                    continue; // Saltar si ya existe
+                }
+                existingNames.add(lowerName); // Agregar a la lista para no duplicar si el Excel trae el mismo varias veces
+                
+                const brand = cols[1]?.trim() || '';
+                const tagsData = cols[2]?.trim() || '';
+                const price = cols[3]?.trim() || '';
+                const unit = cols[4]?.trim() || '';
+                const t = cols[5]?.trim() || '';
+                const w = cols[6]?.trim() || '';
+                const l = cols[7]?.trim() || '';
+                const store = cols[8]?.trim() || '';
+                const loc = cols[9]?.trim() || '';
+                
+                if (tagsData) {
+                    tagsData.split(',').map(tag => tag.trim()).filter(Boolean).forEach(tag => {
+                        if (!tags.includes(tag)) tags.push(tag);
+                    });
+                }
+                if (unit && !units.includes(unit)) units.push(unit);
+                if (store && !stores.some(s => s.name === store)) stores.push({name: store, url: loc !== '#' ? loc : ''});
+                
+                const newCard = document.createElement('article');
+                newCard.className = 'group bg-white rounded-2xl overflow-hidden flex flex-col border border-gray-100 hover:border-primary/20 transition-all duration-300 hover:shadow-xl hover:shadow-primary/5 cursor-pointer';
+                
+                newCard.setAttribute('data-category', tagsData);
+                newCard.setAttribute('data-name', name);
+                newCard.setAttribute('data-brand', brand);
+                newCard.setAttribute('data-price', price);
+                newCard.setAttribute('data-unit', unit);
+                newCard.setAttribute('data-t', t);
+                newCard.setAttribute('data-w', w);
+                newCard.setAttribute('data-l', l);
+                newCard.setAttribute('data-loc', loc !== '#' ? loc : '');
+                newCard.setAttribute('data-store', store);
+                
+                grid.appendChild(newCard);
+                importedCount++;
+            }
+            
+            if (importedCount > 0) {
+                saveSettings();
+                renderSettings();
+                rebuildAllCards();
+                filterMaterials();
+                let msg = `¡Se importaron ${importedCount} materiales exitosamente!`;
+                if (skippedCount > 0) msg += `\nSe omitieron ${skippedCount} materiales que ya existían.`;
+                alert(msg);
+            } else {
+                if (skippedCount > 0) {
+                    alert(`No se importaron materiales nuevos. Todos los ${skippedCount} materiales del archivo ya existían en tu inventario.`);
+                } else {
+                    alert('No se encontraron materiales válidos para importar.');
+                }
+            }
+            
+            event.target.value = ''; // Limpiar el input para permitir importar el mismo archivo de nuevo si se desea
+        };
+        reader.readAsText(file);
     }
 
     // --- Persistencia con LocalStorage ---
@@ -419,11 +1202,23 @@ Limpiar filtros
         const savedData = localStorage.getItem('inventoryData');
         if (savedData) {
             document.getElementById('inventory-grid').innerHTML = savedData;
-            checkEmptyState(); // Asegura de mostrar el empty state si el guardado estaba vacío
+            document.querySelectorAll('#inventory-grid article').forEach(card => card.classList.add('cursor-pointer'));
+            rebuildAllCards(); // Reconstruye todas las tarjetas guardadas para usar el diseño más reciente sin el ícono
+            filterMaterials(); // Asegura aplicar la búsqueda actual y mostrar el empty state si es necesario
         }
     }
 
     // Cargar los datos automáticamente apenas se abra la página
-    document.addEventListener('DOMContentLoaded', loadFromLocalStorage);
+    document.addEventListener('DOMContentLoaded', () => {
+        loadSettings();
+        loadFromLocalStorage();
+    });
+    
+    // Clic en toda la tarjeta para ver Modal de Visualización
+    document.getElementById('inventory-grid').addEventListener('click', function(e) {
+        const article = e.target.closest('article');
+        if (!article || e.target.closest('button') || e.target.closest('a')) return;
+        openViewModal(article);
+    });
 </script>
 </body></html>
